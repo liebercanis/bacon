@@ -1,24 +1,12 @@
 {
-  printf("\n this is rootlogon for bacon analysis \n");
+  printf("\n this is rootlogon for bacon \n");
   TString arch=gSystem->GetBuildArch();
   cout << " arch is " << arch << endl; 
-  int iload = gSystem->Load("./obj/libBaconRoot.so");
-  printf(" loaded libPmtRoot = %i zero is success! \n",iload);
-  gSystem->AddIncludePath(" -I./obj ");
-  //printf(" dynamic path %s \n\n",gSystem->GetDynamicPath());
+  gSystem->AddIncludePath(" -I. -I./obj/");
   printf(" include path %s \n\n",gSystem->GetIncludePath());
-  //printf(" libaries %s \n\n",gSystem->GetLibraries());
+  gROOT->LoadMacro("util.C");
+  //gROOT->LoadMacro("ntupleRun.C",&iload);
+  int iload = gSystem->Load("$HOME/RnD/bacon/obj/libBaconRoot.so");
+  printf(" loaded libPmtRoot = %i zero is success! \n",iload);
 }
-
-void browse() 
-{
- browser = new TBrowser();
- gSystem->Load("libTreeViewer");
-}
-
-void dir() 
-{
-  gDirectory->ls("-m");
-}
-
 
