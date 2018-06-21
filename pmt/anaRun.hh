@@ -18,7 +18,6 @@
 #include <Rtypes.h>
 #include <TH1D.h>
 #include <TF1.h>
-#include <TFormula.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TGraph.h>
@@ -36,11 +35,6 @@ public :
   enum {MAXSAMPLES=10000};
   enum {minLength=3,maxHalfLength=100};
   double sigma = 7.0;
-  Int_t forwardHalfLength = 500;
-  Double_t backwardLengthTimeThresholdDouble = 24e-9;
-  Int_t backwardLengthTimeThreshold=0;
-  Double_t forwardLengthTimeThreshold = 500e-9; //halfMax time window (looks N seconds left and right)
-  Double_t deltaT = 0,deltaV = 999,singlePhoton = 0;
   Double_t baseline[NPMT];
   Double_t sDev[NPMT];
 
@@ -62,7 +56,7 @@ public :
   TPmtEvent* pmtEvent;
   
 
-  TSpectrum * spec = new TSpectrum(20000);
+  //TSpectrum * spec = new TSpectrum(20000);
   //std::vector<Int_t> findMaxPeak(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); 
   //std::vector<Int_t> findPeaks(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); 
   //Int_t findHits(Int_t ipmt, Double_t sum,  std::vector<Int_t> peakTime, std::vector<Double_t> ddigi); 
