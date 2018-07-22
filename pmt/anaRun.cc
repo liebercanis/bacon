@@ -3,163 +3,241 @@
 
 anaRun::anaRun(TString tag)
 {
+  Double_t maxBaseline = 0.01;
   //Int_t irunStop = irunStart;
   TString outFileName ; outFileName.Form("baconRunAna_%s.root",tag.Data());
   TFile *outfile = new TFile(outFileName,"recreate");
   printf(" opening output file %s \n",outFileName.Data());
-  
-  ntupleCal = new TNtuple("ntcal","ntuple Cal","irun:ientry:baseline0:baseline1:sdev0:sdev1");
-  ntupleRun = new TNtuple("ntrun","ntuple Run","run:npmt:entry:nhits:nbins:q:start:width:qmax");
+
+  ntCal = new TNtuple("ntCal","ntuple Cal","irun:ientry:baseline0:baseline1:sdev0:sdev1");
+  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:nbins:q:start:width:qmax");
+  ntEvent = new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:q00:q01:q10:q11");
 
 
   //for(Int_t irun = irunStart; irun<irunStop +1; irun++){
-    // open ouput file and make some histograms
-    TString fileName; fileName.Form("rootData/baconRun_%s.root",tag.Data());
-    printf(" looking for file %s\n",fileName.Data());
-    TFile *fin = new TFile(fileName,"readonly");
-    if(fin->IsZombie()) {
-      printf(" couldnt open file %s\n",fileName.Data());
-      return;
+  // open ouput file and make some histograms
+  TString fileName; fileName.Form("rootData/baconRun_%s.root",tag.Data());
+  printf(" looking for file %s\n",fileName.Data());
+  TFile *fin = new TFile(fileName,"readonly");
+  if(fin->IsZombie()) {
+    printf(" couldnt open file %s\n",fileName.Data());
+    return;
+  }
+  else 
+    printf("  found file %s \n",fileName.Data() );
+
+  // get pmtTree from file 
+  fin->GetObject("pmtTree",pmtTree);
+  Long64_t nentries = pmtTree->GetEntries();
+  printf(" number of entries is %lld peakfinding sigma = %.2f minlength = %i \n",nentries,sigma,minLength);
+
+  // set up memory for reading
+  pmtEvent = new TPmtEvent();
+  pmtTree->SetBranchAddress("pmtEvent", &pmtEvent);
+
+  //switch to output file
+  outfile->cd();
+
+  //Event Vectors
+  Int_t movingN1 = 0;
+  Int_t movingN2 = 0;
+  Double_t runningNoise1 = 0;
+  Double_t runningNoise2 = 0;
+  std::vector<Double_t> runningNoise(2);
+  std::vector<Int_t> movingN(2);
+  cout << " XXXXXXXX movingN size " << movingN.size() << endl;
+  TH1D *hBaseline1  = new TH1D(Form("Baseline1_%s",tag.Data()),"",100,-maxBaseline,maxBaseline);
+  TH1D *hBaseline2  = new TH1D(Form("Baseline2_%s",tag.Data()),"",100,-maxBaseline,maxBaseline);
+  TH1D *hNHits = new TH1D("NHits"," number of hits ",10,0,10);
+
+  printf(" peak finding parameters: \n");
+  printf(" \t sigma %.2f minLength %i  \n",sigma, minLength); 
+
+  double maxSample[2];
+  int printInterval=1000;
+  int nHists=0;
+  int nHistsMax=100;
+  TH1D* hPMTSignal[2];
+  Float_t qpmt[2][2];
+  Float_t tpmt[2][2];
+  Int_t   npmtHit[2];
+  // loop over entries
+  for (UInt_t ientry=0; ientry<nentries; ientry++) {
+    if(ientry%printInterval==0) printf(" ... %i ",ientry);
+    pmtTree->GetEntry(ientry);
+    if(pmtEvent->time.size() == 0) continue;
+    nSamples = pmtEvent->time.size();
+    hBaseline1->Reset();
+    hBaseline2->Reset();
+    for(int ipmt=0; ipmt<2 ; ++ ipmt) {
+      npmtHit[ipmt]=0;
+      for(int ihit=0; ihit<2 ; ++ihit) {
+        qpmt[ipmt][ihit]=0;
+        tpmt[ipmt][ihit]=0;
+      }
     }
-    else 
-      printf("  found file %s \n",fileName.Data() );
 
-    // get pmtTree from file 
-    fin->GetObject("pmtTree",pmtTree);
-    Long64_t nentries = pmtTree->GetEntries();
-    cout << " number of entries is " << nentries << endl;
+    TString name; name.Form("run%s_ev%i",tag.Data(),ientry);
 
-    // set up memory for reading
-    pmtEvent = new TPmtEvent();
-    pmtTree->SetBranchAddress("pmtEvent", &pmtEvent);
-    
-    //switch to output file
-    outfile->cd();
+    /*
+       if( ientry == 0){ 
+       hPMTSum1 = new TH1D("PMT_Sum_0" + name,"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+       hPMTSum2 = new TH1D("PMT_Sum_1" + name,"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+       }
+       */
 
-    Double_t maxBaseline = 0.05;
-    TH1D *hBaseline1  = new TH1D(Form("Baseline1_%s",tag.Data()),"",100,-maxBaseline,maxBaseline);
-    TH1D *hBaseline2  = new TH1D(Form("Baseline2_%s",tag.Data()),"",100,-maxBaseline,maxBaseline);
-    TH1D *hNHits = new TH1D("NHits"," number of hits ",10,0,10);
+    if(ientry==0) {
+      hPMTSignal[0] = new TH1D("PMTSignal1_" + name + TString("_baseline_subtracted"),"",
+          nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+      hPMTSignal[1] = new TH1D("PMTSignal2_" + name + TString("_baseline_subtracted"),"",
+          nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+    }
 
-    printf(" peak finding parameters: maxBaseline %.4f sigma %.4f \n",maxBaseline,sigma);
+    // initialize fft 
+    fFFT = TVirtualFFT::FFT(1, &nSamples, "R2C M K");
+    fInverseFFT = TVirtualFFT::FFT(1, &nSamples, "C2R M K");
+    std::vector<Double_t>  sdigi1,ddigi1,fftdigi1;
+    std::vector<Double_t>  sdigi2,ddigi2,fftdigi2;
+    Double_t baseline1 = 0,sum1 = 0,T1 = 0,T2 = 0;
+    Double_t baseline2 = 0,sum2 = 0;
 
-    double maxSample[2];
-    int printInterval=1000;
-    int nHists=0;
-    int nHistsMax=100;
-    int singlePhoton =0;
 
-    // loop over entries
-    for (UInt_t ientry=0; ientry<nentries; ientry++) {
-      if(ientry%printInterval==0) printf(" ... %i ",ientry);
-      pmtTree->GetEntry(ientry);
-      if(pmtEvent->time.size()<1) continue;
-      nSamples = pmtEvent->time.size();
-      hBaseline1->Reset();
-      hBaseline2->Reset();
+    //For cal ntuple
+    //Int_t tStart = hPMTSignal1->FindBin(-50e-9);
+    //Int_t tStop = hPMTSignal1->FindBin(50e-9);
 
-      TString name; name.Form("run%s_ev%i",tag.Data(),ientry);
-      TH1D* hPMTSignal[2];
+    Int_t tStart = 0;//hPMTSignal1->FindBin(0e-9);
+    Int_t tStop = nSamples;//hPMTSignal1->FindBin(500e-9);
+    Int_t tStartZeroWidth = hPMTSignal[0]->FindBin(0e-9);
+    Int_t tStopZeroWidth = hPMTSignal[0]->FindBin(50e-9);
 
-      hPMTSignal[0] = new TH1D("PMTSignal1_" + name + TString("_baseline_subtracted"),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
-      hPMTSignal[1] = new TH1D("PMTSignal2_" + name + TString("_baseline_subtracted"),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+    if(ientry == 0)  cout<<"StartTime = "<<hPMTSignal[0]->GetBinCenter(tStart)<<", StopTime = "<< hPMTSignal[0]->GetBinCenter(tStop)<<endl;
 
-      // initialize fft 
-      fFFT = TVirtualFFT::FFT(1, &nSamples, "R2C M K");
-      fInverseFFT = TVirtualFFT::FFT(1, &nSamples, "C2R M K");
-      std::vector<Double_t>  sdigi1,ddigi1,fftdigi1;
-      std::vector<Double_t>  sdigi2,ddigi2,fftdigi2;
 
-      std::vector<std::vector<Double_t> > ddigi;  
-      ddigi.resize(NPMT);
+    std::vector<std::vector<Double_t> > ddigi;ddigi.resize(NPMT);
 
-      // loop over samples 
-      for(Int_t isam = 0; isam < nSamples; isam++){
-        Double_t volt1 = pmtEvent->volt1[isam];
-        Double_t volt2 = pmtEvent->volt2[isam];
-        Double_t digi0 = -1.0*(double(volt1));
-        Double_t digi1 = -1.0*(double(volt2));
-        ddigi[0].push_back(digi0);
-        ddigi[1].push_back(digi1);
-        hBaseline1->Fill(digi0);
-        hBaseline2->Fill(digi1);
-      }
+    deltaT = 0;
+    // loop over samples 
+    for(Int_t isam = 0; isam < nSamples; isam++){
+      Double_t volt0 = pmtEvent->volt1[isam];
+      Double_t volt1 = pmtEvent->volt2[isam];
+      Double_t digi0 = -1.0*(double(volt0));
+      Double_t digi1 = -1.0*(double(volt1));
+      ddigi[0].push_back(digi0);
+      ddigi[1].push_back(digi1);
+      hBaseline1->Fill(digi0);
+      hBaseline2->Fill(digi1);
+      if(isam > 0) deltaT += std::fabs(pmtEvent->time[isam] - pmtEvent->time[isam - 1]);
+    }
 
-      //Q is quite mode! very important
-      hBaseline1->Fit("gaus","Q");
-      if(!hBaseline1->GetFunction("gaus") ) continue;
-      baseline[0] = hBaseline1->GetFunction("gaus")->GetParameter(1);
+    deltaT /= (nSamples - 1);
+
+    //Q is quite mode! very important
+    TFitResultPtr ptr1 = hBaseline1->Fit("gaus","Q");
+    baseline[0]=0;
+    sDev[0]=0;
+    if(!hBaseline1->GetFunction("gaus")) {
+      printf(" \t \t cannot fit 1 event %u  \n",ientry);
+      (TH1F*) hBaseline1->Clone(Form("%s-event%u-nofit",hBaseline1->GetName(),ientry));
+    } else {
+      baseline[0] =  hBaseline1->GetFunction("gaus")->GetParameter(1);
       sDev[0] = hBaseline1->GetFunction("gaus")->GetParameter(2);
-      if(std::fabs(baseline[0]) > maxBaseline){
-        cout << " WARNING LARGE BASELINE 1 " << ientry << "  " << baseline[0] << endl;
-        delete hPMTSignal[0];
-        delete hPMTSignal[1];
-        continue; 
-      }
-
-      hBaseline2->Fit("gaus","Q");
-      if(!hBaseline2->GetFunction("gaus") ) continue;
+    }
+    TFitResultPtr ptr2 = hBaseline2->Fit("gaus","Q");
+    baseline[1]=0;
+    sDev[1]=0;
+    if(!hBaseline2->GetFunction("gaus")) {
+      printf(" \t \t cannot fit 2 event %u \n",ientry);
+      (TH1F*) hBaseline2->Clone(Form("%s-event%u-nofit",hBaseline2->GetName(),ientry));
+    } else {
       baseline[1] = hBaseline2->GetFunction("gaus")->GetParameter(1);
       sDev[1] = hBaseline2->GetFunction("gaus")->GetParameter(2);
-      if(std::fabs(baseline[1]) > maxBaseline){
-        cout << " WARNING LARGE BASELINE 2 " << ientry << "  " << baseline[1] << endl;
-        delete hPMTSignal[0];
-        delete hPMTSignal[1];
-        continue; 
-      }
-
-      for(int j = 0; j < ddigi.size();j++){
-        maxSample[j]=0;
-        for(int i = 0; i < ddigi[j].size(); i++){
-          if(ddigi[j][i]>maxSample[j])  maxSample[j] = ddigi[j][i];
-          ddigi[j][i] = ddigi[j][i]-baseline[j];// + sDev[j];
-          hPMTSignal[j]->SetBinContent(i,ddigi[j][i]);
-        }
-      }
-
-      if(ientry%printInterval==0) printf("  baseline %f %f sDev %f %f  ",baseline[0],baseline[1],sDev[0],sDev[1]);
-      ntupleCal->Fill(0,ientry,baseline[0],baseline[1],sDev[0],sDev[1]);
-
-      double deltaT = 1.0;
-
-      for(int pmtNum = 0 ; pmtNum < NPMT; pmtNum++){
-        qhitMax.clear();
-        peakMaxTime.clear();
-        peakBin.clear();
-        qSum.clear();
-        startTime.clear();
-        peakWidth.clear();
-        peakNbins.clear();
-
-        Double_t minDev = 0*sDev[pmtNum], maxDev = sigma*sDev[pmtNum];
-        std::vector<Int_t> peakTime = findPeaks(ddigi[pmtNum],maxDev,minDev); //,tStart,tStop);
-        Int_t nhits = findHits( peakTime, ddigi[pmtNum],maxDev);
-        if(ientry%printInterval==0) printf(" pmt  %i peaktime %lu nhits %i  ",pmtNum,peakTime.size(),nhits);
-        hNHits->Fill(nhits);
-
-        if(nhits<1) { 
-          delete hPMTSignal[pmtNum];
-          continue;
-        }
-        ++singlePhoton;
-
-        if(nHists<nHistsMax){ 
-          TString pmtSignalName;
-          // title with first peak
-          pmtSignalName.Form("PMT_%i_nhits_%i_charge_%.2f_start_%.2f_nbins_%i_nhit_%i",
-              pmtNum, nhits, deltaT*qSum[0]*1E10, startTime[0], peakNbins[0], nhits);
-          hPMTSignal[pmtNum]->SetTitle(pmtSignalName);
-          cout << " hist count  " << ++nHists << "  " << pmtSignalName << endl;
-        } else 
-          delete hPMTSignal[pmtNum];
-
-        for(unsigned ip=0; ip<qSum.size(); ++ip) ntupleRun->Fill(0,pmtNum,ientry,nhits,peakNbins[ip],deltaT*qSum[ip]*1E10,startTime[ip],peakWidth[ip]*1e6,qhitMax[ip]*1E10);
-
-      }
-      if(ientry%printInterval==0) printf("\n");
     }
-    cout<<singlePhoton<<" events with hits out of "<<nentries<< " ntupleRun " << ntupleRun->GetEntries() << endl;
+    ntCal->Fill(0,ientry,baseline[0],baseline[1],sDev[0],sDev[1]);
+    if(std::fabs(baseline[0]) > maxBaseline ||std::fabs(baseline[1]) > maxBaseline ){
+      printf(" WARNING LARGE BASELINE  event %u base 1 %f base 2 %f \n",ientry,baseline[0],baseline[1]);
+    }
+
+    for(int j = 0; j < ddigi.size();j++){
+      maxSample[j]=0;
+      hPMTSignal[j]->Reset();
+      for(int i = 0; i < ddigi[j].size(); i++){
+        if(ddigi[j][i]>maxSample[j])  maxSample[j] = ddigi[j][i];
+        ddigi[j][i] = ddigi[j][i]-baseline[j];// + sDev[j];
+        hPMTSignal[j]->SetBinContent(i,ddigi[j][i]);
+      }
+    }
+
+    if(ientry%printInterval==0) printf(" deltaT %.2E baseline %f %f sDev %f %f  ",deltaT,baseline[0],baseline[1],sDev[0],sDev[1]);
+
+
+    Double_t T0_temp = 1;
+    std::vector<bool> nohitFlag;nohitFlag.resize(2);
+    
+
+    for(int pmtNum = 0 ; pmtNum < NPMT; pmtNum++){
+      //for(double sigma = 3 ; sigma <= 4; sigma += 0.2){
+
+      Double_t minDev = 0*sDev[pmtNum], maxDev = sigma*sDev[pmtNum];
+      std::vector<Int_t> peakTime = findPeaks(ddigi[pmtNum],maxDev,minDev); //,tStart,tStop);
+      hitMap  pmtHits = findHits( peakTime, ddigi[pmtNum],maxDev);
+      unsigned nhits = pmtHits.size();
+      if(ientry%printInterval==0) printf(" pmt  %i peaktime %lu nhits %u  ",pmtNum,peakTime.size(),nhits);
+
+      hNHits->Fill(nhits);
+      if(nhits<1) continue;
+
+      npmtHit[pmtNum]=nhits;
+      singlePhoton++;
+      TString pmtSignalName;
+      hitMapIter hitIter;
+      hitIter=pmtHits.begin();
+      TPmtHit phit0 = hitIter->second;
+      TPmtHit phit1;
+      // next hit if it is there
+      if(pmtHits.size()>1) {
+        ++hitIter;
+        phit1 = hitIter->second;
+      }
+
+      if(nHists<nHistsMax) {
+        // title with first peak
+        pmtSignalName.Form("Ev_%i_PMT_%i_charge_%.2f_peak_%.2f_peakt_%.2f_start_%.2f_width_%.2f_nhit_%i",
+            int(ientry),pmtNum, 
+            deltaT*phit0.qsum*1E10, 
+            phit0.qpeak*1E10,
+            phit0.peakBin, 
+            phit0.startTime,
+            phit0.peakWidth,
+            nhits);
+        (TH1F*) hPMTSignal[pmtNum]->Clone(pmtSignalName);
+        cout << pmtSignalName << endl;
+        ++nHists;
+      } 
+      int hitCount=0;
+      for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
+        TPmtHit phiti = hitIter->second;
+        ntHit->Fill(pmtNum,nhits,hitCount++,phiti.peakBin,deltaT*phiti.qsum*1E10,phiti.startTime*1E6,phiti.peakWidth*1E6,phiti.qpeak*1E10);
+      }
+
+      // save for npmtHit ntuple
+      qpmt[pmtNum][0]=deltaT*phit0.qsum*1E10;
+      tpmt[pmtNum][0]=phit0.startTime*1E6;
+      qpmt[pmtNum][1]=deltaT*phit1.qsum*1E10;
+      tpmt[pmtNum][1]=phit1.startTime*1E6;
+
+    }
+    if(ientry%printInterval==0) printf(" single Photon %.0f \n",singlePhoton);
+    
+    if(npmtHit[0]>0||npmtHit[1]>0) 
+      ntEvent->Fill(ientry,npmtHit[0],npmtHit[1],tpmt[0][0],tpmt[0][1],tpmt[1][0],tpmt[1][1],qpmt[0][0],qpmt[0][1],qpmt[1][0],qpmt[1][1]);
+
+    }
+    cout<<singlePhoton<<" pmts with hits out of "<<nentries<<endl;
+    //}//irun loop
+
     outfile->Write();
+
     return;
 }
 
@@ -209,10 +287,12 @@ std::vector<Int_t> anaRun::findPeaks(std::vector<Double_t> v, Double_t threshold
 }
 
 
-Int_t anaRun::findHits( std::vector<Int_t> peakTime, std::vector<Double_t> ddigi,Double_t sigma) 
+hitMap anaRun::findHits( std::vector<Int_t> peakTime, std::vector<Double_t> ddigi,Double_t sigma) 
 {
 
-  if(peakTime.size()<1) return 0;
+  hitMap pmtHits;
+  if(peakTime.size()<1) return pmtHits;
+
   std::vector<Int_t> hitTime;
   std::vector<std::vector<Int_t> > hitList;
   UInt_t nlast = peakTime.size()-1;
@@ -248,17 +328,18 @@ Int_t anaRun::findHits( std::vector<Int_t> peakTime, std::vector<Double_t> ddigi
     if (qpeak < sigma){
       continue;
     }
-    peakNbins.push_back(Int_t(hitTime.size()));
-    qSum.push_back(qsum);
-    qhitMax.push_back(qpeak);
-    peakMaxTime.push_back(pmtEvent->time[peakt]);
-    peakBin.push_back(peakt);
-    startTime.push_back(pmtEvent->time[hitTime[hitTime.size() - 1] ] );
-    peakWidth.push_back( pmtEvent->time[hitTime[0] ] - pmtEvent->time[hitTime[hitTime.size() - 1] ] );
-    ++nhits;
+    TPmtHit phit;
+    phit.peakBin=Int_t(hitTime.size());
+    phit.qsum=qsum;
+    phit.qpeak=qpeak;
+    phit.peakMaxTime=pmtEvent->time[peakt];
+    phit.peakt=peakt;
+    phit.startTime=pmtEvent->time[hitTime[hitTime.size() - 1] ];
+    phit.peakWidth=pmtEvent->time[hitTime[0] ] - pmtEvent->time[hitTime[hitTime.size() - 1] ];
+    pmtHits.insert ( std::pair<Double_t,TPmtHit>(qsum,phit) );
   }
 
-  return  nhits;
+  return  pmtHits;
 }
 
 std::vector<std::complex<double> > anaRun::FFT(Int_t ipmt,Int_t ievent,std::vector<Double_t> signal)

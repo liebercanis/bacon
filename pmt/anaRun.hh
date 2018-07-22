@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 #include <complex>//includes std::pair, std::make_pair
 #include <valarray>
 //
@@ -18,6 +19,7 @@
 #include <Rtypes.h>
 #include <TH1D.h>
 #include <TF1.h>
+#include <TFormula.h>
 #include <TStyle.h>
 #include <TCanvas.h>
 #include <TGraph.h>
@@ -25,27 +27,27 @@
 #include "TSpectrum.h"
 //
 #include "TPmtEvent.hxx"
+#include "TPmtHit.hxx"
 
 typedef std::complex<double> Complex;
+typedef std::map<Double_t,TPmtHit,std::greater<Double_t> >  hitMap;
+typedef std::map<Double_t,TPmtHit,std::greater<Double_t> >::iterator  hitMapIter;
 
 
 class anaRun {
 public :
   enum {NPMT=2};
   enum {MAXSAMPLES=10000};
-  enum {minLength=3,maxHalfLength=100};
-  double sigma = 7.0;
+  enum {minLength=10,maxHalfLength=100};
+  double sigma = 4.0;
+  Int_t forwardHalfLength = 500;
+  //Double_t backwardLengthTimeThresholdDouble = 24e-9;
+  //Int_t backwardLengthTimeThreshold=0;
+  //Double_t forwardLengthTimeThreshold = 500e-9; //halfMax time window (looks N seconds left and right)
+  Double_t deltaT = 0,deltaV = 999,singlePhoton = 0;
   Double_t baseline[NPMT];
   Double_t sDev[NPMT];
 
-  std::vector<Double_t> startTime;
-  std::vector<Double_t> peakWidth;
-  std::vector<Double_t> qhitMax;
-  std::vector<Double_t> peakMaxTime;
-  std::vector<Double_t> peakBin;
-  std::vector<Double_t> qSum;
-  std::vector<Double_t> T0;
-  std::vector<Int_t> peakNbins;
 
  
   anaRun(){;}
@@ -56,13 +58,13 @@ public :
   TPmtEvent* pmtEvent;
   
 
-  //TSpectrum * spec = new TSpectrum(20000);
+  TSpectrum * spec = new TSpectrum(20000);
   //std::vector<Int_t> findMaxPeak(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); 
   //std::vector<Int_t> findPeaks(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); 
   //Int_t findHits(Int_t ipmt, Double_t sum,  std::vector<Int_t> peakTime, std::vector<Double_t> ddigi); 
 
   std::vector<Int_t> findPeaks(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); //,Int_t startBin, Int_t stopBin);
-  Int_t findHits( std::vector<Int_t> peakTime, std::vector<Double_t> ddigi,Double_t sigma);
+  hitMap findHits( std::vector<Int_t> peakTime, std::vector<Double_t> ddigi,Double_t sigma);
   std::vector<Double_t> SimpleFilter(std::vector<Double_t> in);
   std::vector<Double_t> SimpleLowPassFilter(std::vector<Double_t> in, Double_t a);
   std::vector<Double_t> SimpleHighPassFilter(std::vector<Double_t> in, Double_t a);
@@ -81,9 +83,9 @@ public :
   std::vector<std::complex<double> > FFT(Int_t ipmt,Int_t ievent,std::vector<Double_t> signal);
   std::vector<Double_t > inverseFFT(Int_t ipmt,Int_t ievent, std::vector<std::complex<double> > VectorComplex,std::vector<Double_t> sum);
   // histogram pointers
-  TNtuple *ntupleRun;
-  TNtuple *ntupleEvent;
-  TNtuple *ntupleCal;
+  TNtuple *ntHit;
+  TNtuple *ntEvent;
+  TNtuple *ntCal;
   TH1D* hSamples[NPMT];  // include RF
   TH1D* hFFT[NPMT];
   TH1D* hHitQ[NPMT];

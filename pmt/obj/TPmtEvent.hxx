@@ -1,5 +1,5 @@
 /**
-** MG, August 2017 
+** MG, June 2018 
 **/
 #ifndef TPMTEVENT_DEFINED
 #define TPMTEVENT_DEFINED
@@ -20,14 +20,10 @@ class TPmtEvent: public TNamed {
 		void clear();
 		// data elements
     Int_t    event;
-    UShort_t  gpsYear;
-    UShort_t  gpsDay;
-    UInt_t    gpsSec;
-    UInt_t   gpsNs;
 		std::vector<Double_t> time;		 
 		std::vector<Double_t> volt1;		 
 		std::vector<Double_t> volt2;		 
-		ClassDef(TPmtEvent,1)
+		ClassDef(TPmtEvent,2)
 };
 #endif
 
