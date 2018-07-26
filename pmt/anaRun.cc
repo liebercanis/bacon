@@ -1,17 +1,24 @@
 /* MG revised */
 #include "anaRun.hh"
 
-anaRun::anaRun(TString tag)
+anaRun::anaRun(TString tag, Double_t sigma=0)
 {
   Double_t maxBaseline = 0.01;
+  fsigma=sigma;
+  if(sigma==0) fsigma=5;
+  aveWidth=20;
   //Int_t irunStop = irunStart;
-  TString outFileName ; outFileName.Form("baconRunAna_%s.root",tag.Data());
+  TString outFileName ; outFileName.Form("baconRunAna_%s_%.0fSigma.root",tag.Data(),fsigma);
   TFile *outfile = new TFile(outFileName,"recreate");
   printf(" opening output file %s \n",outFileName.Data());
 
   ntCal = new TNtuple("ntCal","ntuple Cal","irun:ientry:baseline0:baseline1:sdev0:sdev1");
-  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:nbins:q:start:width:qmax");
-  ntEvent = new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:q00:q01:q10:q11");
+  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:nbins:q:start:nwidth:qmax");
+  ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:nbins:q:start:nwidth:qmax");
+  ntEvent = new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:qp0:qp1:q00:q01:q10:q11:qsum0:qsum1");
+
+  hPeakNWidth = new TH1I("PeakNWidth","PeakNWidth",100,0,100);
+  hAllNWidth = new TH1I("AllNWidth","AllNWidth",100,0,100);
 
 
   //for(Int_t irun = irunStart; irun<irunStop +1; irun++){
@@ -29,7 +36,7 @@ anaRun::anaRun(TString tag)
   // get pmtTree from file 
   fin->GetObject("pmtTree",pmtTree);
   Long64_t nentries = pmtTree->GetEntries();
-  printf(" number of entries is %lld peakfinding sigma = %.2f minlength = %i \n",nentries,sigma,minLength);
+  printf(" number of entries is %lld peakfinding sigma = %.2f minlength = %i \n",nentries,fsigma,minLength);
 
   // set up memory for reading
   pmtEvent = new TPmtEvent();
@@ -51,17 +58,21 @@ anaRun::anaRun(TString tag)
   TH1D *hNHits = new TH1D("NHits"," number of hits ",10,0,10);
 
   printf(" peak finding parameters: \n");
-  printf(" \t sigma %.2f minLength %i  \n",sigma, minLength); 
+  printf(" \t sigma %.2f minLength %i  \n",fsigma, minLength); 
 
   double maxSample[2];
   int printInterval=1000;
   int nHists=0;
   int nHistsMax=100;
-  TH1D* hPMTSignal[2];
-  Float_t qpmt[2][2];
-  Float_t tpmt[2][2];
-  Int_t   npmtHit[2];
+  Float_t qpmt[NPMT][MAXHIT];
+  Float_t tpmt[NPMT][MAXHIT];
+  Int_t   npmtHit[NPMT];
+  Double_t qsum[NPMT];
+  Double_t qped[NPMT];
+  Int_t nped[NPMT];
+
   // loop over entries
+  //nentries = 1000;
   for (UInt_t ientry=0; ientry<nentries; ientry++) {
     if(ientry%printInterval==0) printf(" ... %i ",ientry);
     pmtTree->GetEntry(ientry);
@@ -69,9 +80,12 @@ anaRun::anaRun(TString tag)
     nSamples = pmtEvent->time.size();
     hBaseline1->Reset();
     hBaseline2->Reset();
-    for(int ipmt=0; ipmt<2 ; ++ ipmt) {
+    for(int ipmt=0; ipmt<NPMT ; ++ ipmt) {
       npmtHit[ipmt]=0;
-      for(int ihit=0; ihit<2 ; ++ihit) {
+      qped[ipmt]=0;
+      qsum[ipmt]=0;
+      nped[ipmt]=0;
+      for(int ihit=0; ihit<MAXHIT ; ++ihit) {
         qpmt[ipmt][ihit]=0;
         tpmt[ipmt][ihit]=0;
       }
@@ -86,6 +100,7 @@ anaRun::anaRun(TString tag)
        }
        */
 
+    // define pmt signal histograms
     if(ientry==0) {
       hPMTSignal[0] = new TH1D("PMTSignal1_" + name + TString("_baseline_subtracted"),"",
           nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
@@ -96,8 +111,6 @@ anaRun::anaRun(TString tag)
     // initialize fft 
     fFFT = TVirtualFFT::FFT(1, &nSamples, "R2C M K");
     fInverseFFT = TVirtualFFT::FFT(1, &nSamples, "C2R M K");
-    std::vector<Double_t>  sdigi1,ddigi1,fftdigi1;
-    std::vector<Double_t>  sdigi2,ddigi2,fftdigi2;
     Double_t baseline1 = 0,sum1 = 0,T1 = 0,T2 = 0;
     Double_t baseline2 = 0,sum2 = 0;
 
@@ -114,7 +127,8 @@ anaRun::anaRun(TString tag)
     if(ientry == 0)  cout<<"StartTime = "<<hPMTSignal[0]->GetBinCenter(tStart)<<", StopTime = "<< hPMTSignal[0]->GetBinCenter(tStop)<<endl;
 
 
-    std::vector<std::vector<Double_t> > ddigi;ddigi.resize(NPMT);
+    std::vector<std::vector<Double_t> > ddigi; ddigi.resize(NPMT);
+    std::vector<std::vector<Double_t> > ndigi; ndigi.resize(NPMT);
 
     deltaT = 0;
     // loop over samples 
@@ -125,12 +139,20 @@ anaRun::anaRun(TString tag)
       Double_t digi1 = -1.0*(double(volt1));
       ddigi[0].push_back(digi0);
       ddigi[1].push_back(digi1);
+      ndigi[0].push_back(-digi0);
+      ndigi[1].push_back(-digi1);
       hBaseline1->Fill(digi0);
       hBaseline2->Fill(digi1);
       if(isam > 0) deltaT += std::fabs(pmtEvent->time[isam] - pmtEvent->time[isam - 1]);
     }
 
+    //FFT
+    if(ientry<2) {
+      for(int ipmt=0; ipmt<2; ++ipmt) FFT(ipmt,ientry,ddigi[ipmt]);
+    }
+
     deltaT /= (nSamples - 1);
+    if(ientry==0) printf(" delta T is set to %.4E seconds \n",deltaT);
 
     //Q is quite mode! very important
     TFitResultPtr ptr1 = hBaseline1->Fit("gaus","Q");
@@ -158,15 +180,18 @@ anaRun::anaRun(TString tag)
       printf(" WARNING LARGE BASELINE  event %u base 1 %f base 2 %f \n",ientry,baseline[0],baseline[1]);
     }
 
+    // subtract baseline
     for(int j = 0; j < ddigi.size();j++){
       maxSample[j]=0;
       hPMTSignal[j]->Reset();
       for(int i = 0; i < ddigi[j].size(); i++){
         if(ddigi[j][i]>maxSample[j])  maxSample[j] = ddigi[j][i];
         ddigi[j][i] = ddigi[j][i]-baseline[j];// + sDev[j];
+        ndigi[j][i] = ndigi[j][i]+baseline[j];// + sDev[j];
         hPMTSignal[j]->SetBinContent(i,ddigi[j][i]);
       }
     }
+
 
     if(ientry%printInterval==0) printf(" deltaT %.2E baseline %f %f sDev %f %f  ",deltaT,baseline[0],baseline[1],sDev[0],sDev[1]);
 
@@ -176,20 +201,32 @@ anaRun::anaRun(TString tag)
     
 
     for(int pmtNum = 0 ; pmtNum < NPMT; pmtNum++){
-      //for(double sigma = 3 ; sigma <= 4; sigma += 0.2){
 
-      Double_t minDev = 0*sDev[pmtNum], maxDev = sigma*sDev[pmtNum];
+      Double_t minDev = 0*sDev[pmtNum], maxDev = fsigma*sDev[pmtNum];
       std::vector<Int_t> peakTime = findPeaks(ddigi[pmtNum],maxDev,minDev); //,tStart,tStop);
       hitMap  pmtHits = findHits( peakTime, ddigi[pmtNum],maxDev);
+
+      // negative pulses
+      std::vector<Int_t> npeakTime = findPeaks(ndigi[pmtNum],maxDev,minDev); //,tStart,tStop);
+      hitMap  npmtHits = findHits( npeakTime, ndigi[pmtNum],maxDev);
+
+
       unsigned nhits = pmtHits.size();
       if(ientry%printInterval==0) printf(" pmt  %i peaktime %lu nhits %u  ",pmtNum,peakTime.size(),nhits);
 
       hNHits->Fill(nhits);
-      if(nhits<1) continue;
+      if(nhits<1) {
+        // pedestal pulses 
+        for(int i = 0; i < ddigi[pmtNum].size(); i++){
+          qped[pmtNum] += ddigi[pmtNum][i];
+          ++nped[pmtNum];
+        }
+        if(nped[pmtNum]>0) qped[pmtNum] /= 20.0*Double_t(nped[pmtNum]);
+        continue;
+      }
 
       npmtHit[pmtNum]=nhits;
       singlePhoton++;
-      TString pmtSignalName;
       hitMapIter hitIter;
       hitIter=pmtHits.begin();
       TPmtHit phit0 = hitIter->second;
@@ -201,40 +238,62 @@ anaRun::anaRun(TString tag)
       }
 
       if(nHists<nHistsMax) {
-        // title with first peak
-        pmtSignalName.Form("Ev_%i_PMT_%i_charge_%.2f_peak_%.2f_peakt_%.2f_start_%.2f_width_%.2f_nhit_%i",
-            int(ientry),pmtNum, 
-            deltaT*phit0.qsum*1E10, 
-            phit0.qpeak*1E10,
-            phit0.peakBin, 
-            phit0.startTime,
-            phit0.peakWidth,
-            nhits);
-        (TH1F*) hPMTSignal[pmtNum]->Clone(pmtSignalName);
-        cout << pmtSignalName << endl;
+        plotWave(ientry,pmtNum,pmtHits );
         ++nHists;
       } 
       int hitCount=0;
       for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
         TPmtHit phiti = hitIter->second;
-        ntHit->Fill(pmtNum,nhits,hitCount++,phiti.peakBin,deltaT*phiti.qsum*1E10,phiti.startTime*1E6,phiti.peakWidth*1E6,phiti.qpeak*1E10);
+        qsum[pmtNum] += phiti.qsum;
+        Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
+        ntHit->Fill(pmtNum,nhits,hitCount++,phiti.peakBin,phiti.qsum,phiti.startTime*1E6,nwidth,phiti.qpeak);
       }
 
+      // negative pulse ntuple
+      hitCount=0;
+      for (hitMapIter nhitIter=npmtHits.begin(); nhitIter!=npmtHits.end(); ++nhitIter) {
+        TPmtHit phiti = nhitIter->second;
+        Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
+        ntNHit->Fill(pmtNum,nhits,hitCount++,phiti.peakBin,phiti.qsum,phiti.startTime*1E6,nwidth,phiti.qpeak);
+      }
+
+
       // save for npmtHit ntuple
-      qpmt[pmtNum][0]=deltaT*phit0.qsum*1E10;
-      tpmt[pmtNum][0]=phit0.startTime*1E6;
-      qpmt[pmtNum][1]=deltaT*phit1.qsum*1E10;
+      qpmt[pmtNum][0]=phit0.qsum;
+      tpmt[pmtNum][0]=phit0.startTime*1E6;    // milli-sceconds 
+      qpmt[pmtNum][1]=phit1.qsum;
       tpmt[pmtNum][1]=phit1.startTime*1E6;
 
-    }
-    if(ientry%printInterval==0) printf(" single Photon %.0f \n",singlePhoton);
-    
-    if(npmtHit[0]>0||npmtHit[1]>0) 
-      ntEvent->Fill(ientry,npmtHit[0],npmtHit[1],tpmt[0][0],tpmt[0][1],tpmt[1][0],tpmt[1][1],qpmt[0][0],qpmt[0][1],qpmt[1][0],qpmt[1][1]);
+      // pedestal pulses 
+      for(int i = 0; i < ddigi[pmtNum].size(); i++){
+        // remove pulses 
+        bool skip = false;
+        for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
+          TPmtHit phiti = hitIter->second;
+          if( i >= phiti.firstBin && i <= phiti.lastBin ) skip=true;
+        }
+        if(!skip) {
+          qped[pmtNum] += ddigi[pmtNum][i];
+          ++nped[pmtNum];
+        }
+      }
+      if(nped[pmtNum]>0) qped[pmtNum] /= Double_t(aveWidth*nped[pmtNum]);
+
+     // add noise hit
+      Int_t nwidth0 = phit0.lastBin - phit0.firstBin +1;
+      ntHit->Fill(pmtNum,nhits,hitCount++,0,qped[pmtNum],0,nwidth0,qped[pmtNum]/Double_t(nwidth0));
+      //ntHit->Fill(pmtNum,nhits,hitCount++,0,qped[pmtNum],0,nwidth0,sDev[pmtNum]*Double_t(aveWidth));
 
     }
+
+    if(ientry%printInterval==0) printf(" single Photon %.0f \n",singlePhoton);
+
+    //cout << ddigi[0].size() << "   " <<  nped[0]  << "  " << nped[1] << " " << qped[0] << "  " << qped[1] <<  endl;
+
+    if(npmtHit[0]>0||npmtHit[1]>0) 
+      ntEvent->Fill(ientry,npmtHit[0],npmtHit[1],tpmt[0][0],tpmt[0][1],tpmt[1][0],tpmt[1][1],qped[0],qped[1],qpmt[0][0],qpmt[0][1],qpmt[1][0],qpmt[1][1],qsum[0],qsum[1]);
+    }
     cout<<singlePhoton<<" pmts with hits out of "<<nentries<<endl;
-    //}//irun loop
 
     outfile->Write();
 
@@ -253,7 +312,7 @@ std::vector<Int_t> anaRun::findPeaks(std::vector<Double_t> v, Double_t threshold
   //printf(" findPeaks \n");
   for( Int_t ibin=0; ibin< vsize; ++ibin ) {
     //if(ibin%100==0) printf("iiiiiii  ibin %i v %f threshold %f \n",ibin,v[ibin],threshold);
-    if( v[ibin]>threshold) {// starting possible new hit
+    if( v[ibin]>threshold && v[ibin+1] && v[ibin+2]>threshold) {// starting possible new hit
       // consider this a "seed" and find full hit
       klow=ibin;
       for(Int_t k=ibin-1; k>=max(0,ibin-maxHalfLength); --k) {
@@ -267,6 +326,7 @@ std::vector<Int_t> anaRun::findPeaks(std::vector<Double_t> v, Double_t threshold
       }
       kover = khigh-klow+1;
       // found good pulse
+      hAllNWidth->Fill(kover);
       if(kover>minLength) {
         double qsum=0;
         for(Int_t k=klow ; k<= khigh; ++k) {
@@ -281,6 +341,7 @@ std::vector<Int_t> anaRun::findPeaks(std::vector<Double_t> v, Double_t threshold
       ibin=khigh;
     }
   }
+  
 
   //for(UInt_t ih=0; ih<peakTime.size(); ++ih) printf("  %i t= %i ADC= %f\n",ih,peakTime[ih],v[peakTime[ih]]);
   return peakTime;
@@ -332,38 +393,29 @@ hitMap anaRun::findHits( std::vector<Int_t> peakTime, std::vector<Double_t> ddig
     phit.peakBin=Int_t(hitTime.size());
     phit.qsum=qsum;
     phit.qpeak=qpeak;
+    phit.firstBin = hitTime[hitTime.size() - 1];
+    phit.lastBin = hitTime[0];
     phit.peakMaxTime=pmtEvent->time[peakt];
     phit.peakt=peakt;
     phit.startTime=pmtEvent->time[hitTime[hitTime.size() - 1] ];
     phit.peakWidth=pmtEvent->time[hitTime[0] ] - pmtEvent->time[hitTime[hitTime.size() - 1] ];
     pmtHits.insert ( std::pair<Double_t,TPmtHit>(qsum,phit) );
-  }
+    hPeakNWidth->Fill(phit.lastBin-phit.firstBin+1);
+ }
 
   return  pmtHits;
 }
 
 std::vector<std::complex<double> > anaRun::FFT(Int_t ipmt,Int_t ievent,std::vector<Double_t> signal)
 {
-  /*
-     for(int i = 0; i < ddigi.size(); i++){
-     std::vector<std::complex<double> > fftPair = FFT(i,ientry,ddigi[i]);
-     std::vector<Double_t> vecTemp = inverseFFT(i,ientry,fftPair,sum);
-     }
-     */  
   std::vector<std::complex<double> > VectorComplex;
   for(int is =0; is<nSamples; ++is) {
     if(ipmt==0) fFFT->SetPoint(is, signal[is]);
     else fFFT->SetPoint(is, signal[is]);
   }
   fFFT->Transform();
-  if(ipmt == 0){
-    hfft = new TH1D(Form("FFTChannelOne_%i",ievent),Form("FFT Channel One %i",ievent),nSamples/2,0,nSamples/2);
-    //hfft = new TH1D(Form("FFTChannelOne_%i",ievent),Form("FFT Channel One %i",ievent),nSamples,0,nSamples);
-  }
-  else if(ipmt == 1){
-    hfft = new TH1D(Form("FFTChannelTwo_%i",ievent),Form("FFT Channel Two %i",ievent),nSamples/2,0,nSamples/2);
-    //hfft = new TH1D(Form("FFTChannelTwo_%i",ievent),Form("FFT Channel Two %i",ievent),nSamples,0,nSamples);
-  }
+  TH1D* hfft = new TH1D(Form("FFTPMT%i_Ev%i",ipmt,ievent),Form("FFT Channel %i Ev %i",ipmt,ievent),nSamples/2,0,nSamples/2);
+  cout << " FFT histogram " << hfft->GetName() << endl;
 
   std::vector<Double_t> realVec,imVec;
   for (int i = 0; i<nSamples; ++i) {
@@ -397,14 +449,10 @@ std::vector< Double_t > anaRun::inverseFFT(Int_t ipmt,Int_t ievent,std::vector<s
     else fInverseFFT->SetPoint( is, VectorComplex[is].real(),VectorComplex[is].imag() );
   }
   fInverseFFT->Transform();
-  if(ipmt == 0){
-    hIfft = new TH1D(Form("inverseFFTChannelOne_%i",ievent),Form("InverseFFT_One_%i",ievent),nSamples,pmtEvent->time[0],pmtEvent->time[nSamples - 1]);
-    //hfft = new TH1D(Form("FFTChannelOne_%i",ievent),Form("FFT Channel One %i",ievent),nSamples,0,nSamples);
-  }
-  else if(ipmt == 1){
-    hIfft = new TH1D(Form("inverseFFTChannelTwo_%i",ievent),Form("InverseFFT_Two_%i",ievent),nSamples,pmtEvent->time[0],pmtEvent->time[nSamples - 1]);
-    //hfft = new TH1D(Form("FFTChannelTwo_%i",ievent),Form("FFT Channel Two %i",ievent),nSamples,0,nSamples);
-  }
+  
+  TH1D* hIfft = new TH1D(Form("inverseFFTPMT%i_Ev%i",ipmt,ievent),Form("Inverse FFT Channel %i Ev %i",ipmt,ievent),nSamples/2,0,nSamples/2);
+  cout << " FFT histogram " << hIfft->GetName() << endl;
+
   Double_t norm = 0;
   for (int i = 0; i<nSamples; ++i) {
     double rl = fInverseFFT->GetPointReal(i);
@@ -502,5 +550,27 @@ std::vector<Double_t> anaRun::MovingAverageFilter(std::vector<Double_t> signal,I
   return filter;
 }
 
+void anaRun::plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits ) {
+  TString histName; 
+  TString peaksName; 
+  hitMapIter hitIter=pmtHits.begin();
+  TPmtHit phit0 = hitIter->second;
+  unsigned nhits = pmtHits.size();
 
+  // title with first peak
+  histName.Form("Ev_%i_PMT_%i_Q_%.2E_bin_%i_nhit_%u",int(ientry),pmtNum, phit0.qsum, phit0.peakBin,nhits);
+  TH1F* hist = (TH1F*) hPMTSignal[pmtNum]->Clone(histName);
+
+  // title with first peak
+  peaksName.Form("PeaksEv_%i_PMT%i_Q_%.2E_bin_%i_nhit_%u",int(ientry),pmtNum, phit0.qsum, phit0.peakBin,nhits);
+  TH1F* hpeaks = (TH1F*) hPMTSignal[pmtNum]->Clone(peaksName);
+
+  cout << "plotWave: " << hist->GetName() << " " << hpeaks->GetName() << endl;
+
+  hpeaks->Reset();
+  for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
+    TPmtHit phiti = hitIter->second;
+    for(Int_t ibin=phiti.firstBin; ibin<=phiti.lastBin; ++ibin) hpeaks->SetBinContent(ibin, hist->GetBinContent(ibin));
+  }
+}
 

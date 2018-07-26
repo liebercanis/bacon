@@ -38,12 +38,10 @@ class anaRun {
 public :
   enum {NPMT=2};
   enum {MAXSAMPLES=10000};
+  enum {MAXHIT=3};
   enum {minLength=10,maxHalfLength=100};
-  double sigma = 4.0;
-  Int_t forwardHalfLength = 500;
-  //Double_t backwardLengthTimeThresholdDouble = 24e-9;
-  //Int_t backwardLengthTimeThreshold=0;
-  //Double_t forwardLengthTimeThreshold = 500e-9; //halfMax time window (looks N seconds left and right)
+  double fsigma;
+  int aveWidth;
   Double_t deltaT = 0,deltaV = 999,singlePhoton = 0;
   Double_t baseline[NPMT];
   Double_t sDev[NPMT];
@@ -51,18 +49,14 @@ public :
 
  
   anaRun(){;}
-  anaRun(TString tag);
+  anaRun(TString tag, Double_t sigma);
   virtual ~anaRun(){;}
 
   TTree* pmtTree;
   TPmtEvent* pmtEvent;
   
 
-  TSpectrum * spec = new TSpectrum(20000);
-  //std::vector<Int_t> findMaxPeak(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); 
-  //std::vector<Int_t> findPeaks(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); 
-  //Int_t findHits(Int_t ipmt, Double_t sum,  std::vector<Int_t> peakTime, std::vector<Double_t> ddigi); 
-
+  //TSpectrum * spec = new TSpectrum(20000);
   std::vector<Int_t> findPeaks(std::vector<Double_t> v, Double_t threshold,Double_t sthreshold); //,Int_t startBin, Int_t stopBin);
   hitMap findHits( std::vector<Int_t> peakTime, std::vector<Double_t> ddigi,Double_t sigma);
   std::vector<Double_t> SimpleFilter(std::vector<Double_t> in);
@@ -70,6 +64,8 @@ public :
   std::vector<Double_t> SimpleHighPassFilter(std::vector<Double_t> in, Double_t a);
   std::vector<Double_t> MovingAverageFilter(std::vector<Double_t> signal,Int_t N);
   std::vector<Double_t> BubbleSort(std::vector<Double_t> A);
+
+  void plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits);
 
   //Double_t convolve(Double_t *x, Double_t *par);
   Int_t nSamples;
@@ -84,12 +80,13 @@ public :
   std::vector<Double_t > inverseFFT(Int_t ipmt,Int_t ievent, std::vector<std::complex<double> > VectorComplex,std::vector<Double_t> sum);
   // histogram pointers
   TNtuple *ntHit;
+  TNtuple *ntNHit;
   TNtuple *ntEvent;
   TNtuple *ntCal;
-  TH1D* hSamples[NPMT];  // include RF
   TH1D* hFFT[NPMT];
   TH1D* hHitQ[NPMT];
   TH1D* hNHits[NPMT];
+  TH1D* hPMTSignal[NPMT];
 
   TH1D* hPMTSum1;
   TH1D* hPMTSum2;
@@ -99,11 +96,10 @@ public :
   TH1D* hBase;
   TH1D* hChargeWindow;
   TH1D* hChargePeak;
-  TH1D* hPeakWidth;
+  TH1I* hPeakNWidth;
+  TH1I* hAllNWidth;
   TH1D* hBaseline;
   TH1D* hBaselineFFT;
-  TH1D* hfft;
-  TH1D* hIfft;
   TH1D* hHits;
   TH1D* hDeltaV;
   TH1D* hStartTime;

@@ -19,15 +19,17 @@ class TPmtHit: public TNamed {
 
     void clear();
     // data elements
+    Int_t firstBin;
+    Int_t lastBin;
     Double_t startTime;
     Double_t peakWidth;
     Double_t qpeak;
     UInt_t peakt;
     Double_t peakMaxTime;
-    Double_t peakBin;
+    Int_t peakBin;
     Double_t qsum;
 
-    ClassDef(TPmtHit,1)
+    ClassDef(TPmtHit,3)
 };
 #endif
 

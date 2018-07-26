@@ -10,6 +10,8 @@ TPmtHit::TPmtHit(): TNamed("TPmtHit","TPmtHit")
 
 void TPmtHit::clear()
 {
+  firstBin=0;
+  lastBin=0;
   startTime=0;
   peakWidth=0;
   qpeak=0;

@@ -70,7 +70,7 @@ namespace ROOT {
       return GenerateInitInstanceLocal((::TPmtRun*)0);
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_(Init) = GenerateInitInstanceLocal((const ::TPmtRun*)0x0); R__UseDummy(_R__UNIQUE_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const ::TPmtRun*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
 } // end of namespace ROOT
 
 //______________________________________________________________________________
@@ -104,7 +104,7 @@ TClass *TPmtRun::Dictionary()
 //______________________________________________________________________________
 TClass *TPmtRun::Class()
 {
-   if (!fgIsA.load()) { R__LOCKGUARD2(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::TPmtRun*)0x0)->GetClass(); }
+   if (!fgIsA.load()) { R__LOCKGUARD(gInterpreterMutex); fgIsA = ::ROOT::GenerateInitInstanceLocal((const ::TPmtRun*)0x0)->GetClass(); }
    return fgIsA;
 }
 
@@ -156,7 +156,7 @@ namespace ROOT {
       vector<TPmtEvent> *ptr = 0;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(vector<TPmtEvent>));
       static ::ROOT::TGenericClassInfo 
-         instance("vector<TPmtEvent>", -2, "vector", 210,
+         instance("vector<TPmtEvent>", -2, "vector", 447,
                   typeid(vector<TPmtEvent>), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &vectorlETPmtEventgR_Dictionary, isa_proxy, 4,
                   sizeof(vector<TPmtEvent>) );
@@ -169,7 +169,7 @@ namespace ROOT {
       return &instance;
    }
    // Static variable to force the class initialization
-   static ::ROOT::TGenericClassInfo *_R__UNIQUE_(Init) = GenerateInitInstanceLocal((const vector<TPmtEvent>*)0x0); R__UseDummy(_R__UNIQUE_(Init));
+   static ::ROOT::TGenericClassInfo *_R__UNIQUE_DICT_(Init) = GenerateInitInstanceLocal((const vector<TPmtEvent>*)0x0); R__UseDummy(_R__UNIQUE_DICT_(Init));
 
    // Dictionary for non-ClassDef classes
    static TClass *vectorlETPmtEventgR_Dictionary() {
@@ -213,8 +213,8 @@ namespace {
     static const char* includePaths[] = {
 "/usr/local/root/include",
 "/.",
-"/usr/local/root-6.08.00-build/include",
-"/home/gold/bacon/pmt/obj/",
+"/usr/local/root_v6.12.06/include",
+"/Users/gold/RnD/bacon/obj/",
 0
     };
     static const char* fwdDeclCode = R"DICTFWDDCLS(
@@ -223,9 +223,9 @@ namespace {
 #pragma clang diagnostic ignored "-Wignored-attributes"
 #pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
 extern int __Cling_Autoloading_Map;
-class __attribute__((annotate("$clingAutoload$TPmtRun.hxx")))  TPmtEvent;
-namespace std{template <typename _Tp> class __attribute__((annotate("$clingAutoload$string")))  allocator;
-}
+class __attribute__((annotate("$clingAutoload$TPmtEvent.hxx")))  __attribute__((annotate("$clingAutoload$TPmtRun.hxx")))  TPmtEvent;
+namespace std{inline namespace __1{template <class _Tp> class __attribute__((annotate("$clingAutoload$iosfwd")))  __attribute__((annotate("$clingAutoload$string")))  allocator;
+}}
 class __attribute__((annotate("$clingAutoload$TPmtRun.hxx")))  TPmtRun;
 )DICTFWDDCLS";
     static const char* payloadCode = R"DICTPAYLOAD(
