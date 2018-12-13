@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ -z "$1" ]
+then
+ echo "usage: runRead <tag>"
+ exit
+else 
+ TAG=$1
+ echo TAG = $TAG
+fi
+echo root -q -b "readRun.cc++(\"$TAG\")"
+root -q -b "readRun.cc++(\"$TAG\")"
+
