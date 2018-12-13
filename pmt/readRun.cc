@@ -18,9 +18,12 @@
 #include <TCanvas.h>
 // local 
 #include "TPmtEvent.hxx"
+
+// file scope variables 
 TTree *pmtTree;
 TPmtEvent *pmtEvent;
-
+bool TwoPmts;
+int nDuplicates =0;
 TString tag;
 
 bool getEventsInDirectory(std::string directory, std::vector<Int_t> &eventNumbers)
@@ -47,11 +50,6 @@ bool getEventsInDirectory(std::string directory, std::vector<Int_t> &eventNumber
 
 int readEvent(Int_t ievent, TString fileName)
 {
-  //cout << " reading file " << fileName << endl;
-
-  //pmtEvent->clear();
-  //pmtEvent->event=ievent;
-  //printf(" looking for file %s \n",fileName.Data());
 
   string line;
   Int_t nlines = 0;
@@ -69,63 +67,71 @@ int readEvent(Int_t ievent, TString fileName)
     //printf("%.11f %.8f %.8f \n",time,volt1,volt2);
     timeVec.push_back(time);
     volt1Vec.push_back(volt1);
-    volt2Vec.push_back(volt2);
-    /*
-    pmtEvent->time.push_back(time);
-    pmtEvent->volt1.push_back(volt1);
-    pmtEvent->volt2.push_back(volt2);
-    */
+    if(TwoPmts) volt2Vec.push_back(volt2);
     nlines++;
   }
   in.close();
 
+  bool duplicate=false;
+  if(pmtTree->GetEntries() !=0 &&
+      pmtEvent->volt1[0] == volt1Vec[0]     && pmtEvent->volt1[10] == volt1Vec[10]     && 
+      pmtEvent->volt1[100] == volt1Vec[100] && pmtEvent->volt1[110] == volt1Vec[110] &&
+      pmtEvent->volt1[150] == volt1Vec[150] && pmtEvent->volt1[160] == volt1Vec[160] &&
+      pmtEvent->volt1[200] == volt1Vec[200] && pmtEvent->volt1[210] == volt1Vec[210] 
+    ) duplicate = true;
 
-  pmtEvent->volt1 = volt1Vec;
-  pmtEvent->volt2 = volt2Vec;
-  pmtEvent->time = timeVec;
-  pmtEvent->event=ievent;
-  pmtTree->Fill();
+  if(!duplicate) {
+    pmtEvent->volt1 = volt1Vec;
+    pmtEvent->volt2 = volt2Vec;
+    pmtEvent->time = timeVec;
+    pmtEvent->event=ievent;
+    pmtTree->Fill();
+  } else ++nDuplicates;
 
-  pmtEvent->clear();
+  // dont want to claer pmtEvent->clear();
   //printf(" have read %i lines and %llu entries \n",nlines,pmtTree->GetEntries());
 
   return nlines;
     
 }
 
-void readRun(Int_t firstRun=0, unsigned maxEvents=0)
+void readRun(TString dirTag="runNov2018_1", unsigned maxEvents=0)
 {
+  TwoPmts = false;
+  Int_t firstRun=0;
   Int_t lastRun = firstRun;
-  printf("readRun tag %s  maxEvents %u first run %i last run %i \n",tag.Data(),maxEvents,firstRun,lastRun);
+  printf("readRun tag %s  maxEvents %u first \n",dirTag.Data(),maxEvents);
+  if(TwoPmts) printf("\t reading 2 pmts \n");
+  else  printf("\t WARNING... reading 1 pmt only \n");
   for(Int_t irun  = firstRun; irun <=lastRun;irun++){
-  // open ouput file and make some histograms
-  TString outFileName; outFileName.Form("rootData/baconRun_%i_%u.root",irun,maxEvents);
-  TFile *outfile = new TFile(outFileName,"recreate");
-  outfile->cd();
-  printf(" opening output file %s \n",outFileName.Data());
+    // open ouput file and make some histograms
+    TString outFileName; outFileName.Form("rootData/baconRun_%s_%u.root",dirTag.Data(),maxEvents);
+    TFile *outfile = new TFile(outFileName,"recreate");
+    outfile->cd();
+    printf(" opening output file %s \n",outFileName.Data());
 
-  // ttree
-  pmtTree = new TTree("pmtTree","pmtTree");
-  pmtEvent  = new TPmtEvent();
-  pmtTree->Branch("pmtEvent",&pmtEvent);
+    // ttree
+    pmtTree = new TTree("pmtTree","pmtTree");
+    pmtEvent  = new TPmtEvent();
+    pmtTree->Branch("pmtEvent",&pmtEvent);
 
-  // get list of files
-  TString dirName;
-  dirName.Form("rawData/run_%i",irun);
-  std::string directory(dirName.Data());
+    // get list of files
+    TString dirName;
+    dirName.Form("rawData/%s",dirTag.Data());
+    std::string directory(dirName.Data());
 
-  std::vector<Int_t> eventNumbers;
-  if(!getEventsInDirectory(directory,eventNumbers)) return;
-  if(maxEvents==0) maxEvents = eventNumbers.size();
-  Int_t nlines=0;
-  for( unsigned ievent = eventNumbers[0]; ievent < maxEvents ; ++ievent ) {
-    TString fname;
-    fname.Form("%s_%i.txt",tag.Data(),ievent);
-    TString fullFileName = dirName + TString("/")+fname;
-    if(ievent%100==0) cout << ievent << "  " << fname << " tree size  " << pmtTree->GetEntries()  << endl;
-    nlines += readEvent(ievent,fullFileName);
-  }
-  printf(" total of lines %i total number of events is %i \n",nlines,int(pmtTree->GetEntries()));
-  outfile->Write();
+    std::vector<Int_t> eventNumbers;
+    if(!getEventsInDirectory(directory,eventNumbers)) return;
+    if(maxEvents==0) maxEvents = eventNumbers.size();
+    Int_t nlines=0;
+    for( unsigned ievent = eventNumbers[0]; ievent < maxEvents ; ++ievent ) {
+      TString fname;
+      fname.Form("%s_%i.txt",tag.Data(),ievent);
+      TString fullFileName = dirName + TString("/")+fname;
+      if(ievent%100==0) cout << ievent << "  " << fname << " tree size  " << pmtTree->GetEntries()  << " duplicates " << nDuplicates << endl;
+      nlines += readEvent(ievent,fullFileName);
+    }
+    printf(" total of lines %i total number of events is %i number duplicates %i \n",nlines,int(pmtTree->GetEntries()),nDuplicates);
+    outfile->Write();
   }
 }
