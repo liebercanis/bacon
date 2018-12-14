@@ -223,10 +223,10 @@ void plotEv(TString theTag = "run_4_0_Ev_10_derivative", Int_t ievent=0)
 {
   tag = theTag;
   TString fileName;
-  fileName.Form("baconRunAna_%s.root",tag.Data());
+  //fileName.Form("baconRunAna_%s.root",tag.Data());
 
   
-  fin = TFile::Open(fileName);
+  fin = TFile::Open(theTag);
 
   if(!fin) return;
 

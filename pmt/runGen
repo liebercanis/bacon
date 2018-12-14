@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ -z "$1" ]
+then
+ echo "usage: runGen <number of events>"
+ exit
+else 
+ NEV=$1
+fi
+
+echo root -q -b "genPulses.cc++($NEV)"
+root -q -b "genPulses.cc++($NEV)"
+

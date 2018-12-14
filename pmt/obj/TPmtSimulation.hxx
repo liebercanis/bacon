@@ -20,17 +20,11 @@ class TPmtSimulation: public TNamed {
 		void clear();
 		// data elements
     Int_t    event;
-    UShort_t  gpsYear;
-    UShort_t  gpsDay;
-    UInt_t    gpsSec;
-    UInt_t   gpsNs;
     Double_t sigma;
     Double_t tau1;
     Double_t tau2;
     Double_t ratio12;
     Int_t Nphotons;
-		std::vector<Double_t> time;		 
-		std::vector<Double_t> volt;
     std::vector<Double_t> startTime;
 		ClassDef(TPmtSimulation,1)
 };

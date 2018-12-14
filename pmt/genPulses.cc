@@ -30,26 +30,31 @@ class MyFunction {
 };
 
 
-genPulses::genPulses(){
 
+genPulses::genPulses(Int_t maxEvents)
+{
+  Int_t nEvents = maxEvents;
   TDatime time;
   //time 12:36:26 133626
   ///date 24/12/1997 19971224
-//  TString outFileName = TString("simEvents.")+to_string(time.GetTime())+TString("-")+to_string(time.GetDate())+TString(".root");
-  TString outFileName = "simEvents.100.100photons.root";
+  Double_t gaussMean = 0,gaussSigma = .0009;
+  Int_t Nphotons = 1;
+  TString outFileName = TString("rootData/simEvents_")+TString(to_string(time.GetDate()))+Form("_%i",nEvents)+TString(".root");
+  //TString outFileName = "simEvents.100.100photons.root";
   TFile *outFile = new TFile(outFileName,"recreate");
-  printf(" opening output file %s \n",outFileName.Data());
+  printf(" opening output file %s npulses %i gaussMean %f gaussSigma %f\n",outFileName.Data(),Nphotons,gaussMean,gaussSigma);
   
  
-  TTree * simTree = new TTree("simTree","simTree");
+  TTree * simTree = new TTree("pmtTree","pmtTree");
   pmtSimulation = new TPmtSimulation();
   simTree->Branch("pmtSimulation",&pmtSimulation);
+  pmtEvent = new TPmtEvent();
+  simTree->Branch("pmtEvent", &pmtEvent);
 
   TRandom2 rand;
   rand.SetSeed(time.GetTime());
   MyFunction  fObj;
   double s=4.e-9;double t1=2.e-9;double t2=8e-9;double t12=1.3;double mean = 100e-9;double amp = 5e-11;
-  Int_t nEvents = 100;
   
 
   for(int k = 0; k < nEvents; k++){
@@ -57,7 +62,6 @@ genPulses::genPulses(){
     Int_t nbins = 10000;//0000;
     TH1F* hSignal = new TH1F(TString("response_")+to_string(k),TString("response_")+to_string(k),nbins,0,4e-6);
     
-    Int_t Nphotons = 100;
     std::vector<Double_t> pulseTimes = PulseStartTime(Nphotons,k+time.GetTime());
     std::vector<Double_t> sig,time;
     
@@ -70,9 +74,9 @@ genPulses::genPulses(){
     pmtSimulation->event = k;
 
   
-    for(int i = 0; i < pulseTimes.size();i++){
+    for(unsigned i = 0; i < pulseTimes.size();i++){
       mean = pulseTimes[i];
-      TF1 * f1 = new TF1("f",fObj,mean-5.*s, mean+10*t2,6);
+      TF1 * f1 = new TF1("fbaseline",fObj,mean-5.*s, mean+10*t2,6);
       //TF1 * f1 = new TF1("f",fObj,0,2.e-6,5);
       f1->SetLineColor(kBlue);
       f1->SetParameters(s,t1,t2,t12,mean,amp);
@@ -101,13 +105,12 @@ genPulses::genPulses(){
         hSignal->SetBinContent(j+1,hSignal->GetBinContent(j+1)+f1->Eval(hSignal->GetBinCenter(j+1)));
       }
     }
-    Double_t gausMean = 0,gausSigma = .0009;
     TF1 * fBaseSag = new TF1("Baseline_Sag","[0]*TMath::Exp(-x/[1])*TMath::Sin((x-[2])/(2*[1]))",300e-9,4e-6);
     fBaseSag->SetParameter(0,-hSignal->GetMaximum()/2);
     fBaseSag->SetParameter(1,1e-6);
     fBaseSag->SetParameter(2,0);
     for(int i = 0; i <hSignal->GetNbinsX();i++){
-      Double_t noise = gausMean+gausSigma*sqrt(-2.0*log(rand.Rndm()))*cos(2*TMath::Pi()*rand.Rndm()) ;
+      Double_t noise = gaussMean+gaussSigma*sqrt(-2.0*log(rand.Rndm()))*cos(2*TMath::Pi()*rand.Rndm()) ;
       //hSignal->SetBinContent(i+1,hSignal->GetBinContent(i+1));
       //hSignal->SetBinContent(i+1,noise+hSignal->GetBinContent(i+1));
       if(hSignal->GetBinCenter(i+1) > 300e-9)
@@ -117,15 +120,14 @@ genPulses::genPulses(){
       sig.push_back(-noise-hSignal->GetBinContent(i+1));
       time.push_back(hSignal->GetBinCenter(i+1));
     }
-    pmtSimulation->volt = sig;
-    pmtSimulation->time = time;
+    pmtEvent->volt1 = sig;
+    pmtEvent->time = time;
     simTree->Fill();
     pmtSimulation->clear();
   hSignal->Draw();
   }
   outFile->Write();
-  cout<<"root -l "<<outFileName<<endl;
-
+  cout<<"end of genPulses "<<outFileName<<" events " << simTree->GetEntries() << endl;
 }
 
 std::vector<Double_t> genPulses::PulseStartTime(Int_t nPhotons,Double_t randSeed){
@@ -150,10 +152,10 @@ std::vector<Double_t> genPulses::PulseStartTime(Int_t nPhotons,Double_t randSeed
   TRandom2 rand;
   rand.SetSeed(randSeed);
   Int_t counter = 0,failCounter = 0;
-  do{
+
+  while(counter < nPhotons){
     failCounter++;
     if(failCounter > 1e7) break;
-    
     //Double_t x = rand.Rndm()*stopTime;
     Double_t x = -1e-6*TMath::Log(1-rand.Rndm());
     //max = fBound->Eval(x);
@@ -168,16 +170,7 @@ std::vector<Double_t> genPulses::PulseStartTime(Int_t nPhotons,Double_t randSeed
     hTest->Fill(x);
     pulseTimes.push_back(x);
     counter++;
-    /*
-    if(y <= fScintDist->Eval(x)){
-      counter++;
-      x += shiftTime;
-      hTest->Fill(x);
-      pulseTimes.push_back(x);
-    }
-    */
-  }while(counter < nPhotons);
- 
+  } 
   //hTest->Fit(fScintDist);
   //hTest->Draw();
   hTest->Write();
