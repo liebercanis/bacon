@@ -75,6 +75,15 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   // set up memory for reading
   pmtEvent = new TPmtEvent();
   pmtTree->SetBranchAddress("pmtEvent", &pmtEvent);
+  pmtSimulation=NULL;
+  isSimulation=false;
+  if(pmtTree->FindBranch("pmtSimulation")) {
+    pmtSimulation = new TPmtSimulation();
+    if(pmtTree->SetBranchAddress("pmtSimulation", &pmtSimulation)==TTree::kMatch) isSimulation=true;
+  }
+  if(isSimulation) printf(" \t\t this is simulation \n");
+  else printf(" \t\t this is real data \n");
+
 
   //switch to output file
   outfile->cd();
@@ -238,6 +247,15 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       hNHits[pmtNum]->Fill(nhits);
       unsigned negnhits = npmtHits.size();
       hNegNHits[pmtNum]->Fill(negnhits);
+
+      // compare hits and simulation 
+      if(isSimulation) {
+        std::vector<Double_t> startTime=pmtSimulation->startTime;
+        
+        for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) printf(" %i %E \n",isim,startTime[isim]);
+
+
+      }
 
       if(ientry%printInterval==0) printf(" pmt  %i peaktime %lu nhits %u  ",pmtNum,peakList.size(),nhits);
 
@@ -737,16 +755,22 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v, Int_t nsum, Double_t r
 
   // parse crossings to make pairs 
   unsigned ip =0; 
-  while( ip< crossings.size() -2 ) {
+  //printf("crossings %zu \n",crossings.size());
+  while( ip< crossings.size() -1 ) {
     if( crossings[ip]==UPCROSS && crossings[ip+1]==UPCROSS && crossings[ip+2]==UPCROSS) {
+      //printf(" peak %i (%i %i )\n",ip,crossings[ip],crossings[ip+1]); 
       peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
       ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(0));//sigma:d0:step:dstep
       ip = ip+2;
     } else if(ip<crossings.size()-4&&(crossings[ip]==UPCROSS&&crossings[ip+1]==UPCROSS&&crossings[ip+2]==DOWNCROSS&&crossings[ip+3]==DOWNCROSS)) {
+     // printf(" peak %i (%i %i %i %i )\n",ip,crossings[ip],crossings[ip+1],crossings[ip+2],crossings[ip+3]); 
       peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+3]) );
       ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+3]-crossingBin[ip]),double(1));//sigma:d0:step:dstep
       ip=ip+4;
-    } else ++ip;
+    } else {
+      //printf(" peak %i (%i %i )\n",ip,crossings[ip],crossings[ip+1]); 
+      ++ip;
+    }
   }
 
   // extend pulses to zero derivative

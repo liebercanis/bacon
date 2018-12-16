@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ -z "$1" ]
+then
+ echo "usage: runGen <FILE>"
+ exit
+else 
+ FILE=$1
+fi
+
+echo "plotEv.C(\"$FILE\")"
+root "plotEv.C(\"$FILE\")"
+

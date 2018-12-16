@@ -31,6 +31,7 @@
 //
 #include "TPmtEvent.hxx"
 #include "TPmtHit.hxx"
+#include "TPmtSimulation.hxx"
 
 typedef std::complex<double> Complex;
 typedef std::map<Double_t,TPmtHit,std::greater<Double_t> >  hitMap;
@@ -47,6 +48,7 @@ public :
   enum {minLength=7,maxHalfLength=100};
   enum {baseLineHalfWindow = 200}; // even integer
   double fsigma;
+  bool isSimulation;
   Int_t nSigma;
   Int_t aveWidth;
   Int_t windowSize;
@@ -59,6 +61,7 @@ public :
 
   TTree* pmtTree;
   TPmtEvent* pmtEvent;
+  TPmtSimulation* pmtSimulation;
   
 
   // for TSpectrum baseline
