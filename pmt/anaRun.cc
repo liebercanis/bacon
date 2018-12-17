@@ -8,6 +8,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   ran = new TRandom3();
   Double_t sigma=0;
   fsigma=sigma;
+  timeUnit;
   if(sigma==0) fsigma=5;
   windowSize=15;
   nSigma=5;
@@ -137,11 +138,15 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
     if(gotPMT<1) return;
 
     TString name; name.Form("%s_Ev%i",tag.Data(),ientry);
+    Double_t simHitMatchTime=0;
     // define pmt signal histograms
     if(ientry==0) {
       source = new Double_t[nSamples];
       Double_t maxLife = pmtEvent->time[nSamples-1]*1E6;
-      printf(" \n\n ***** setting maxLife %f \n",maxLife);
+      timeUnit=pmtEvent->time[1]-pmtEvent->time[0];
+      simHitMatchTime=100.0*timeUnit;
+      printf(" \n\n ***** setting time unit %E maxLife %f \n",timeUnit,maxLife);
+      if(isSimulation) printf(" \n\n ***** setting matching time  %E \n",simHitMatchTime);
       for(int ipmt=0; ipmt<gotPMT; ++ipmt) {
         hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
         hPMTSignal[ipmt] = new TH1D(Form("PMTSignal%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
@@ -156,13 +161,17 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
         hNLife[ipmt] = new TH1D(Form("NLife%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),2000,-maxLife,maxLife);
         hNLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
-        //hLife[ipmt]->Sumw2();
-      }
+         //hLife[ipmt]->Sumw2();
+        if(isSimulation) {
+          hPMTSim[ipmt] = new TH1D(Form("PMTSim%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+          hPMTSimHitMatch[ipmt] = new TH1D(Form("PMTSimHitMatch%i_%s",ipmt,tag.Data()),"",1000,0,100*simHitMatchTime);
+        }      }
       // initialize fft 
       fFFT = TVirtualFFT::FFT(1, &nSamples, "R2C M K");
       fInverseFFT = TVirtualFFT::FFT(1, &nSamples, "C2R M K");
     }
 
+    //outfile->ls();
 
     std::vector<std::vector<Double_t> > ddigi; ddigi.resize(NPMT);
     std::vector<std::vector<Double_t> > ndigi; ndigi.resize(NPMT);
@@ -235,6 +244,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       // subtract baseline
       maxSample[pmtNum]=0;
       hPMTSignal[pmtNum]->Reset();
+      if(isSimulation) hPMTSim[pmtNum]->Reset();
       for(int i = 0; i < int(ddigi[pmtNum].size()); i++){
         if(ddigi[pmtNum][i]>maxSample[pmtNum])  maxSample[pmtNum] = ddigi[pmtNum][i];
         ///ddigi[pmtNum][i] = ddigi[pmtNum][i]-baselineDigi[pmtNum][i];// + sDev[pmtNum];
@@ -248,15 +258,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       unsigned negnhits = npmtHits.size();
       hNegNHits[pmtNum]->Fill(negnhits);
 
-      // compare hits and simulation 
-      if(isSimulation) {
-        std::vector<Double_t> startTime=pmtSimulation->startTime;
-        
-        for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) printf(" %i %E \n",isim,startTime[isim]);
-
-
-      }
-
+ 
       if(ientry%printInterval==0) printf(" pmt  %i peaktime %lu nhits %u  ",pmtNum,peakList.size(),nhits);
 
       totalHits[pmtNum] += nhits;
@@ -291,11 +293,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       //if(nwidth0>20) continue;
 
 
-      if(nHists<nHistsMax) {
-        plotWave(ientry,pmtNum,pmtHits );
-        ++nHists;
-      }
-
       hQFirst->Fill(firstTime,firstCharge);
       //if(firstCharge<firstChargeCut&&phit0.qsum>firstChargeCut) 
       if(firstTime==1E9&&phit0.qsum>firstChargeCut) 
@@ -312,6 +309,30 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         qsum[pmtNum] += phiti.qsum;
         ntHit->Fill(pmtNum,nhits,hitCount++,istartBin, phiti.startTime*1E6, phitTime,phiti.qsum,nwidth,phiti.qpeak);
         if(phitTime!=0&&firstCharge>firstChargeCut) hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+      }
+
+      // compare hits and simulation 
+      if(isSimulation) {
+        std::vector<Double_t> startTime=pmtSimulation->startTime;
+        unsigned nmatch=0;
+        for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
+          hPMTSim[pmtNum]->Fill(startTime[isim]);
+          Double_t diff=1E9;
+          for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
+            TPmtHit phiti = hitIter->second;
+            if(abs(phiti.peakt*timeUnit-startTime[isim])<diff) diff = abs(phiti.peakt*timeUnit-startTime[isim]);
+          }
+          if(diff<simHitMatchTime) ++nmatch;
+          //printf(" %u %E %E %i \n",isim, startTime[isim], diff, nmatch );
+          hPMTSimHitMatch[pmtNum]->Fill(diff);
+        }
+        printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch);
+      }
+
+
+      if(nHists<nHistsMax) {
+        plotWave(ientry,pmtNum,pmtHits );
+        ++nHists;
       }
 
       // summed wave forms only if passes first charge cut
@@ -590,7 +611,6 @@ void anaRun::plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits ) {
   // title with first peak
   histName.Form("WaveEv%i_PMT_%i",ientry,pmtNum);
   TH1F* hist = (TH1F*) hPMTSignal[pmtNum]->Clone(histName);
- 
   printf("plotWave: %s %.0f \n",hbase->GetName(),hbase->GetEntries());
 
   // fill peaks
@@ -600,6 +620,11 @@ void anaRun::plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits ) {
   for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
     TPmtHit phiti = hitIter->second;
     for(Int_t ibin=phiti.firstBin; ibin<=phiti.lastBin; ++ibin) hpeaks->SetBinContent(ibin, hist->GetBinContent(ibin));
+  }
+  
+  if(isSimulation) {
+    histName.Form("SimHitsEv%i_PMT_%i",ientry,pmtNum);
+    TH1F* hist = (TH1F*) hPMTSim[pmtNum]->Clone(histName);
   }
 
 }
@@ -756,8 +781,8 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v, Int_t nsum, Double_t r
   // parse crossings to make pairs 
   unsigned ip =0; 
   //printf("crossings %zu \n",crossings.size());
-  while( ip< crossings.size() -1 ) {
-    if( crossings[ip]==UPCROSS && crossings[ip+1]==UPCROSS && crossings[ip+2]==UPCROSS) {
+  while( ip< crossings.size() -2 ) {
+    if( ip<crossings.size()-3&&crossings[ip]==UPCROSS && crossings[ip+1]==UPCROSS && crossings[ip+2]==UPCROSS) {
       //printf(" peak %i (%i %i )\n",ip,crossings[ip],crossings[ip+1]); 
       peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
       ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(0));//sigma:d0:step:dstep
@@ -767,8 +792,12 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v, Int_t nsum, Double_t r
       peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+3]) );
       ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+3]-crossingBin[ip]),double(1));//sigma:d0:step:dstep
       ip=ip+4;
-    } else {
+    } else if(ip==crossings.size()-2&&crossings[ip]==UPCROSS && crossings[ip+1]==UPCROSS) {
       //printf(" peak %i (%i %i )\n",ip,crossings[ip],crossings[ip+1]); 
+      peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
+      ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(0));//sigma:d0:step:dstep
+      ++ip;
+    } else {
       ++ip;
     }
   }

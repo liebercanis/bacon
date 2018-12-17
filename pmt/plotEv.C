@@ -33,6 +33,10 @@ void plot1(Int_t ievent) {
   psearch.Form("PeaksEv%i_PMT_0",ievent);
   printf(" looking for %s %s \n",search.Data(),psearch.Data());
 
+  TH1D* shist=NULL;
+  TString ssearch;
+  ssearch.Form("SimHitsEv%i_PMT_0",ievent);
+
   
   TList* list = fin->GetListOfKeys() ;
   if (!list) { printf("<E> No keys found in file\n") ; exit(1) ; }
@@ -46,6 +50,7 @@ void plot1(Int_t ievent) {
     TString hname(obj->GetName());
     if( hname.Contains(search) && !hname.Contains(psearch) ) hist = (TH1D*) obj;;
     if( hname.Contains(psearch)) phist = (TH1D*) obj;;
+    if( hname.Contains(ssearch)) shist = (TH1D*) obj;;
   }
 
   if(!(hist&&phist)) { 
@@ -63,7 +68,11 @@ void plot1(Int_t ievent) {
   hist->SetFillColor(kBlue);
   hist->SetFillStyle(0);
 
-  
+  if(shist) {
+    shist->SetLineColor(kGreen);
+    shist->SetFillColor(kGreen);
+    shist->SetFillStyle(0);
+  }
 
   TString canName;
   canName.Form("%s-Event%i",tag.Data(),ievent);
@@ -71,6 +80,7 @@ void plot1(Int_t ievent) {
   TCanvas * can = new TCanvas(canName,canName);
   hist->Draw();
   phist->Draw("same");
+  if(shist) shist->Draw("same");
   can->Print(".png");
 }
 
@@ -144,6 +154,11 @@ void plotd(Int_t ievent) {
   TString psearch;
   psearch.Form("PeaksEv%i_PMT_0",ievent);
   
+  TH1D* shist=NULL;
+  TString ssearch;
+  ssearch.Form("SimHitsEv%i_PMT_0",ievent);
+
+  
   printf(" looking for %s %s %s \n",search.Data(),dsearch.Data(),psearch.Data());
 
   
@@ -158,8 +173,9 @@ void plotd(Int_t ievent) {
     if (!obj->InheritsFrom("TH1D")) continue;
     TString hname(obj->GetName());
     if( hname.Contains(search) && !hname.Contains(psearch) ) hist = (TH1D*) obj;;
-    if( hname.Contains(psearch)) phist = (TH1D*) obj;;
-    if( hname.Contains(dsearch)) dhist = (TH1D*) obj;;
+    if( hname.Contains(psearch)) phist = (TH1D*) obj;
+    if( hname.Contains(dsearch)) dhist = (TH1D*) obj;
+    if( hname.Contains(ssearch)) shist = (TH1D*) obj;
   }
 
   if(!(hist&&phist)) { 
@@ -180,6 +196,12 @@ void plotd(Int_t ievent) {
   phist->SetLineColor(kRed);
   phist->SetFillColor(kRed);
   phist->SetFillStyle(3002);
+  if(shist) {
+    shist->SetLineColor(kGreen);
+    shist->SetFillColor(kGreen);
+    shist->SetFillStyle(0);
+  }
+
 
   TString canName;
   canName.Form("%s-Der-Event%i",tag.Data(),ievent);
@@ -188,7 +210,10 @@ void plotd(Int_t ievent) {
   can->Divide(1,3);
   can->cd(1); hist->Draw();
   can->cd(2); dhist->Draw();
-  can->cd(3); phist->Draw();
+  can->cd(3); {
+    phist->Draw();
+    if(shist) shist->Draw("same");
+  }
   can->Print(".png");
 }
 

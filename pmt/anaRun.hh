@@ -48,6 +48,7 @@ public :
   enum {minLength=7,maxHalfLength=100};
   enum {baseLineHalfWindow = 200}; // even integer
   double fsigma;
+  double timeUnit;
   bool isSimulation;
   Int_t nSigma;
   Int_t aveWidth;
@@ -106,11 +107,14 @@ public :
   TNtuple *ntCal;
   TNtuple *ntPulse;
   TNtuple *ntDer;
+  TNtuple *ntSimMatch;
   TH1D* hFFT[NPMT];
   TH1D* hHitQ[NPMT];
   TH1D* hNHits[NPMT];
   TH1D* hNegNHits[NPMT];
   TH1D* hPMTRaw[NPMT];
+  TH1D* hPMTSim[NPMT];
+  TH1D* hPMTSimHitMatch[NPMT];
   TH1D* hPMTSignal[NPMT];
   TH1D* hPMTDerivative[NPMT];
   TH1D* hSum[NPMT];
