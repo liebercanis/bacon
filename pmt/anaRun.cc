@@ -348,7 +348,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         }
 
         ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch),float(nnot),float(nmiss));
-        printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  not %u \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch,nnot);
+        //printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  not %u \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch,nnot);
         Double_t eff,over;
         int tMatch,tMiss,tSim,tHit,tExtra;
         simMatchStats(tMatch,tMiss,tExtra,tSim,tHit,eff,over);
