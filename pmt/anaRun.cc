@@ -146,8 +146,8 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       simHitMatchTime=100.0*timeUnit;
       printf(" \n\n ***** setting time unit %E maxLife %f \n",timeUnit,maxLife);
       if(isSimulation) printf(" \n\n ***** setting matching time  %E \n",simHitMatchTime);
+      if(isSimulation) ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match:nnot:nmiss");
       for(int ipmt=0; ipmt<gotPMT; ++ipmt) {
-         if(isSimulation) ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match");
         hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
         hPMTSignal[ipmt] = new TH1D(Form("PMTSignal%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
         hPMTDerivative[ipmt] = new TH1D(Form("PMTDeriv%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
@@ -315,25 +315,45 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       // compare hits and simulation 
       if(isSimulation) {
         std::vector<Double_t> startTime=pmtSimulation->startTime;
-        unsigned nmatch=0;
+        // vector to hold best matches
+        std::vector<Double_t> hitMatch(pmtHits.size(),100.);
+        std::vector<Int_t> hitMatchNumber(pmtHits.size(),-1);
         for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
           hPMTSim[pmtNum]->Fill(startTime[isim]);
-          Double_t diff=1E9;
+          unsigned ihit=0;
           for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
             TPmtHit phiti = hitIter->second;
-            if(abs(phiti.peakt*timeUnit-startTime[isim])<diff) diff = abs(phiti.peakt*timeUnit-startTime[isim]);
+            if(abs(phiti.peakt*timeUnit-startTime[isim])<hitMatch[ihit]) {
+              hitMatch[ihit] = abs(phiti.peakt*timeUnit-startTime[isim]);
+              hitMatchNumber[ihit]=isim;
+            }
+            ++ihit;
           }
-          if(diff<simHitMatchTime) ++nmatch;
-          //printf(" %u (%E) %E %E %i \n",isim, simHitMatchTime,startTime[isim], diff, nmatch );
-          hPMTSimHitMatch[pmtNum]->Fill(diff);
         }
-        ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch));
-        //printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch);
-        Double_t eff,extra;
-        int tMatch,tSim,tHit;
-        simMatchStats(tMatch,tSim,tHit,eff,extra);
-        if(ientry%printInterval==0) printf(" \t sim match stats: events %i sim %i hit %i match %i efficiency/hit %f  extra hits/event %f \n",
-            int(ntSimMatch->GetEntries()),tSim,tHit,tMatch,eff,extra);
+        unsigned nmatch=0;
+        unsigned nnot=0;
+        for(unsigned ihit=0; ihit<hitMatch.size(); ++ihit) {
+          if(hitMatch[ihit]<simHitMatchTime) ++nmatch;
+          else ++nnot;
+          hPMTSimHitMatch[pmtNum]->Fill(hitMatch[ihit]);
+          //printf(" %u (%E) %E number %i nmatch %i nnot %i \n",ihit, simHitMatchTime,hitMatch[ihit],hitMatchNumber[ihit], nmatch,nnot );
+        }
+
+        // count missed
+        unsigned nmiss=0;
+        for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
+          bool matched=false;
+          for(unsigned ihit=0; ihit< hitMatchNumber.size(); ++ihit) if(isim==hitMatchNumber[ihit]) matched=true;
+          if(!matched) ++nmiss;
+        }
+
+        ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch),float(nnot),float(nmiss));
+        printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  not %u \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch,nnot);
+        Double_t eff,over;
+        int tMatch,tMiss,tSim,tHit,tExtra;
+        simMatchStats(tMatch,tMiss,tExtra,tSim,tHit,eff,over);
+        if(ientry%printInterval==0) printf(" \t sim match stats: events %i sim %i hit %i match %i miss %i  efficiency/hit %f  over hits/event %f \n",
+            int(ntSimMatch->GetEntries()),tSim,tHit,tMatch,tMiss,eff,over);
       }
       if(nHists<nHistsMax) {
         plotWave(ientry,pmtNum,pmtHits );
@@ -831,34 +851,41 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v, Int_t nsum, Double_t r
   return peakList;
 }
 
-void anaRun::simMatchStats(int& tMatch, int& tSim, int& tHit, double& eff, double& extra) 
+void anaRun::simMatchStats(int& tMatch, int& tMissed, int& tExtra, int& tSim, int& tHit, double& eff, double& over) 
 {
   eff=0;
-  extra=0;
+  over=0;
   tMatch=0;
   tSim=0;
   tHit=0;
   Int_t nentries = (Int_t)ntSimMatch->GetEntries();
   if(nentries<1) return;
-  Float_t pmt,nsim,nhit,match;
+  Float_t pmt,nsim,nhit,match,nnot,nmiss;
   ntSimMatch->SetBranchAddress("pmt",&pmt);
   ntSimMatch->SetBranchAddress("nsim",&nsim);
   ntSimMatch->SetBranchAddress("nhit",&nhit);
   ntSimMatch->SetBranchAddress("match",&match);
+  ntSimMatch->SetBranchAddress("nnot",&nnot);
+  ntSimMatch->SetBranchAddress("nmiss",&nmiss);
 
   Float_t totMatch=0;
   Float_t totSim=0;
   Float_t totHit=0;
+  Float_t totExtra=0;
+  Float_t totMissed=0;
   for (Int_t i=0;i<nentries;i++) {
     ntSimMatch->GetEntry(i);
     totMatch+= match;
     totSim += nsim;
     totHit += nhit;
+    totExtra += nnot;
+    totMissed += nmiss;
   }
   eff   = double(totMatch)/double(totSim);
-  double d = double(totHit-totMatch);
-  extra = max(extra,d)/double(nentries);
+  over = double(totExtra)/double(nentries);
   tMatch = int(totMatch);
   tSim = int(totSim);
   tHit = int(totHit);
+  tExtra = int(totExtra);
+  tMissed = int(totMissed);
 }
