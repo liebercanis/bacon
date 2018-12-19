@@ -86,6 +86,8 @@ public :
   void plotWave(Int_t iev, Int_t pmtNum, hitMap pmtHits);
   void sumWave(Int_t ipmt);
 
+  void simMatchStats(int& tMatch, int& tSim, int& tHit, double& eff, double& extra); 
+
   std::vector<Double_t> differentiate(std::vector<Double_t> v, unsigned nstep);  
 
   //Double_t convolve(Double_t *x, Double_t *par);
