@@ -4,7 +4,9 @@
 anaRun::anaRun(TString tag, Int_t maxEvents)
 {
   printf(" starting anaRun tag %s \n",tag.Data());
-  int printInterval=10;
+  int printInterval=100;
+  int nHists=0;
+  int nHistsMax=50;
   firstChargeCut=0.1;
   ran = new TRandom3();
   Double_t simHitMatchTime=0;
@@ -21,7 +23,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   printf(" opening output file %s \n",outFileName.Data());
 
   ntCal =  new TNtuple("ntCal","ntuple Cal","iev:ipmt:base:sigma:dbase:dsigma");
-  ntHit =  new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax");
+  ntHit =  new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax:match");
   ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax");
   ntDer =  new TNtuple("ntDer"," deriviative ","sigma:d0:kover:type");
   ntEvent= new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:qp0:qp1:q00:q01:q10:q11:qsum0:qsum1");
@@ -104,8 +106,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   //printf(" \t sigma %.2f minLength %i  \n",fsigma, minLength); 
 
   double maxSample[2];
-  int nHists=0;
-  int nHistsMax=300;
   Float_t qpmt[NPMT][MAXHIT];
   Float_t tpmt[NPMT][MAXHIT];
   Int_t   npmtHit[NPMT];
@@ -292,7 +292,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
 
       // peak 0 width cut 
       hNWidthCut->Fill(nwidth0);
-
       //if(nwidth0>20) continue;
 
 
@@ -302,19 +301,9 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         printf(" WARNING NO FIRST PULSE event %i  pmt %i pulses %i qhit %f time %f first %f charge %f \n",
             ientry,pmtNum,nhits,phit0.qsum,phit0.startTime*1E6,firstTime,firstCharge);
 
-      int hitCount=0;
-      for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
-        TPmtHit phiti = hitIter->second;
-        Double_t phitTime =  phiti.startTime*1E6-firstTime; 
-        hQStart->Fill(phitTime,phiti.qsum);
-        Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
-        Int_t istartBin =  hLife[pmtNum]->FindBin(phitTime); 
-        qsum[pmtNum] += phiti.qsum;
-        ntHit->Fill(pmtNum,nhits,hitCount++,istartBin, phiti.startTime*1E6, phitTime,phiti.qsum,nwidth,phiti.qpeak);
-        if(phitTime!=0&&firstCharge>firstChargeCut) hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
-      }
-
+   
       // compare hits and simulation 
+      std::vector<bool> isMatch(pmtHits.size(),false);
       if(isSimulation) {
         std::vector<Double_t> startTime=pmtSimulation->startTime;
         // vector to hold best matches
@@ -335,8 +324,10 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         unsigned nmatch=0;
         unsigned nnot=0;
         for(unsigned ihit=0; ihit<hitMatch.size(); ++ihit) {
-          if(hitMatch[ihit]<simHitMatchTime) ++nmatch;
-          else ++nnot;
+          if(hitMatch[ihit]<simHitMatchTime) {
+            ++nmatch;
+            isMatch[ihit]=true;
+          } else ++nnot;
           hPMTSimHitMatch[pmtNum]->Fill(hitMatch[ihit]);
           //printf(" %u (%E) %E number %i nmatch %i nnot %i \n",ihit, simHitMatchTime,hitMatch[ihit],hitMatchNumber[ihit], nmatch,nnot );
         }
@@ -355,9 +346,24 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         //if(ientry%printInterval==0) simMatchStats->print();
         simMatchStats->print();
       }
+
       if(nHists<nHistsMax) {
         plotWave(ientry,pmtNum,pmtHits );
         ++nHists;
+      }
+
+      // look at hits
+      int hitCount=0;
+      for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
+        TPmtHit phiti = hitIter->second;
+        Double_t phitTime =  phiti.startTime*1E6-firstTime; 
+        hQStart->Fill(phitTime,phiti.qsum);
+        Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
+        Int_t istartBin =  hLife[pmtNum]->FindBin(phitTime); 
+        qsum[pmtNum] += phiti.qsum;
+        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*1E6, phitTime,phiti.qsum,nwidth,phiti.qpeak,float(isMatch[hitCount]));
+        if(phitTime!=0&&firstCharge>firstChargeCut) hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+        ++hitCount;
       }
 
       // summed wave forms only if passes first charge cut
@@ -369,6 +375,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       nhitIter=npmtHits.begin();
       TPmtHit nphit0 = nhitIter->second;
 
+      // look at negative hits
       hitCount=0;
       for (hitMapIter nhitIter=npmtHits.begin(); nhitIter!=npmtHits.end(); ++nhitIter) {
         TPmtHit phiti = nhitIter->second;
