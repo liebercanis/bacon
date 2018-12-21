@@ -32,6 +32,7 @@
 #include "TPmtEvent.hxx"
 #include "TPmtHit.hxx"
 #include "TPmtSimulation.hxx"
+#include "TPmtSimMatchStats.hxx"
 
 typedef std::complex<double> Complex;
 typedef std::map<Double_t,TPmtHit,std::greater<Double_t> >  hitMap;
@@ -63,6 +64,7 @@ public :
   TTree* pmtTree;
   TPmtEvent* pmtEvent;
   TPmtSimulation* pmtSimulation;
+  TPmtSimMatchStats *simMatchStats;
 
   // for TSpectrum baseline
   TSpectrum * spec;
@@ -84,8 +86,6 @@ public :
  
   void plotWave(Int_t iev, Int_t pmtNum, hitMap pmtHits);
   void sumWave(Int_t ipmt);
-
-  void simMatchStats(int& tMatch, int& tMissed, int& tExtra, int& tSim, int& tHit, double& eff, double& over);
 
   std::vector<Double_t> differentiate(std::vector<Double_t> v, unsigned nstep);  
 

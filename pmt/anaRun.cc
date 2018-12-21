@@ -22,8 +22,8 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
 
   ntCal =  new TNtuple("ntCal","ntuple Cal","iev:ipmt:base:sigma:dbase:dsigma");
   ntHit =  new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax");
-  ntDer =  new TNtuple("ntDer"," deriviative ","sigma:d0:kover:type");
   ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax");
+  ntDer =  new TNtuple("ntDer"," deriviative ","sigma:d0:kover:type");
   ntEvent= new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:qp0:qp1:q00:q01:q10:q11:qsum0:qsum1");
   ntPulse= new TNtuple("ntPulse"," pulse ","sum:shigh:slow:nsamp:kover:qlow:qhigh:klow:khigh");
   ntWave = new TNtuple("ntWave"," wave ","event:v:d");
@@ -83,7 +83,9 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
     pmtSimulation = new TPmtSimulation();
     if(pmtTree->SetBranchAddress("pmtSimulation", &pmtSimulation)==TTree::kMatch) isSimulation=true;
   }
-  if(isSimulation) printf(" \t\t this is simulation \n");
+  if(isSimulation) { printf(" \t\t this is simulation \n");
+    simMatchStats = new TPmtSimMatchStats();
+  }
   else printf(" \t\t this is real data \n");
 
 
@@ -343,17 +345,15 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         unsigned nmiss=0;
         for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
           bool matched=false;
-          for(unsigned ihit=0; ihit< hitMatchNumber.size(); ++ihit) if(isim==hitMatchNumber[ihit]) matched=true;
+          for(unsigned ihit=0; ihit< hitMatchNumber.size(); ++ihit) if(int(isim)==hitMatchNumber[ihit]) matched=true;
           if(!matched) ++nmiss;
         }
 
         ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch),float(nnot),float(nmiss));
+        if(pmtNum==0) simMatchStats->fill(startTime.size(),pmtHits.size(),nmatch,nnot,nmiss);
         //printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  not %u \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch,nnot);
-        Double_t eff,over;
-        int tMatch,tMiss,tSim,tHit,tExtra;
-        simMatchStats(tMatch,tMiss,tExtra,tSim,tHit,eff,over);
-        if(ientry%printInterval==0) printf(" \t sim match stats: events %i sim %i hit %i match %i miss %i  efficiency/hit %f  over hits/event %f \n",
-            int(ntSimMatch->GetEntries()),tSim,tHit,tMatch,tMiss,eff,over);
+        //if(ientry%printInterval==0) simMatchStats->print();
+        simMatchStats->print();
       }
       if(nHists<nHistsMax) {
         plotWave(ientry,pmtNum,pmtHits );
@@ -851,41 +851,3 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v, Int_t nsum, Double_t r
   return peakList;
 }
 
-void anaRun::simMatchStats(int& tMatch, int& tMissed, int& tExtra, int& tSim, int& tHit, double& eff, double& over) 
-{
-  eff=0;
-  over=0;
-  tMatch=0;
-  tSim=0;
-  tHit=0;
-  Int_t nentries = (Int_t)ntSimMatch->GetEntries();
-  if(nentries<1) return;
-  Float_t pmt,nsim,nhit,match,nnot,nmiss;
-  ntSimMatch->SetBranchAddress("pmt",&pmt);
-  ntSimMatch->SetBranchAddress("nsim",&nsim);
-  ntSimMatch->SetBranchAddress("nhit",&nhit);
-  ntSimMatch->SetBranchAddress("match",&match);
-  ntSimMatch->SetBranchAddress("nnot",&nnot);
-  ntSimMatch->SetBranchAddress("nmiss",&nmiss);
-
-  Float_t totMatch=0;
-  Float_t totSim=0;
-  Float_t totHit=0;
-  Float_t totExtra=0;
-  Float_t totMissed=0;
-  for (Int_t i=0;i<nentries;i++) {
-    ntSimMatch->GetEntry(i);
-    totMatch+= match;
-    totSim += nsim;
-    totHit += nhit;
-    totExtra += nnot;
-    totMissed += nmiss;
-  }
-  eff   = double(totMatch)/double(totSim);
-  over = double(totExtra)/double(nentries);
-  tMatch = int(totMatch);
-  tSim = int(totSim);
-  tHit = int(totHit);
-  tExtra = int(totExtra);
-  tMissed = int(totMissed);
-}
