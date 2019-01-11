@@ -477,7 +477,9 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Double_t> ddigi,Double_t 
       firstCharge = qsum;
     }
 
-    pmtHits.insert ( std::pair<Double_t,TPmtHit>(qsum,phit) );
+    Double_t hitTime = phit.startTime*1E6;
+
+    pmtHits.insert ( std::pair<Double_t,TPmtHit>(hitTime,phit) );
     hPeakNWidth->Fill(phit.lastBin-phit.firstBin+1);
   }
   if(firstCharge<firstChargeCut&&pmtHits.size()>0&&qmax>firstChargeCut) printf("\t WARNING XXXXX NO FIRST PULSE pulses %i max %f \n",int(pmtHits.size()),qmax);
