@@ -35,8 +35,8 @@
 #include "TPmtSimMatchStats.hxx"
 
 typedef std::complex<double> Complex;
-typedef std::map<Double_t,TPmtHit,std::greater<Double_t> >  hitMap;
-typedef std::map<Double_t,TPmtHit,std::greater<Double_t> >::iterator  hitMapIter;
+typedef std::map<Double_t,TPmtHit,std::less<Double_t> >  hitMap;
+typedef std::map<Double_t,TPmtHit,std::less<Double_t> >::iterator  hitMapIter;
 
 typedef std::vector<std::pair<unsigned,unsigned> >  peakType;
 typedef std::vector<std::pair<unsigned,unsigned> >::iterator  peakTypeIter;
