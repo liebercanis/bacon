@@ -23,6 +23,7 @@ class PulseFunction {
 
 genPulses::genPulses(Int_t maxEvents)
 {
+  Double_t tau3 = 1.0E-6; // triplet lifetime
   Int_t nEvents = maxEvents;
   TDatime time;
   rand.SetSeed(time.GetTime());
@@ -105,7 +106,7 @@ genPulses::genPulses(Int_t maxEvents)
   for(int k = 0; k < nEvents; k++){
     
     //generate pulse start times
-    std::vector<Double_t> pulseTimes = PulseStartTime(k,Nphotons);
+    std::vector<Double_t> pulseTimes = PulseStartTime(k,Nphotons,tau3);
     std::vector<Double_t> sig,time;
     
     pmtSimulation->startTime = pulseTimes;
@@ -165,7 +166,7 @@ genPulses::genPulses(Int_t maxEvents)
   cout<<"end of genPulses "<<outFileName<<" events " << simTree->GetEntries() << endl;
 }
 
-std::vector<Double_t> genPulses::PulseStartTime(Int_t event, Int_t nPhotons){
+std::vector<Double_t> genPulses::PulseStartTime(Int_t event, Int_t nPhotons, Double_t tau3){
   std::vector<Double_t> pulseTimes;
   /*
   Double_t max = fScintDist->GetMaximum(startTime,stopTime);
@@ -174,21 +175,11 @@ std::vector<Double_t> genPulses::PulseStartTime(Int_t event, Int_t nPhotons){
   */
 
   TH1D * hTestEv = (TH1D*) hTest->Clone(Form("test-Ev%i",event));
-  Int_t counter = 0,failCounter = 0;
 
-  while(counter < nPhotons){
-    failCounter++;
-    if(failCounter > 1e7) break;
-    Double_t x = -1e-6*TMath::Log(1-rand.Rndm());
-    Double_t fX = fScintDist->Eval(x);
-    Double_t hX = fBound->Eval(x);
-    Double_t u = rand.Rndm();
-    if(u*hX > fX) continue;
-    if(x+shiftTime > stopTime) continue;
-    x += shiftTime;
+  for(Int_t c = 0; c<nPhotons; ++c) {
+    Double_t x = -tau3*TMath::Log(1-rand.Rndm());
     hTestEv->Fill(x);
     pulseTimes.push_back(x);
-    counter++;
   } 
   //hTest->Fit(fScintDist);
   //hTest->Draw();

@@ -47,7 +47,7 @@ class genPulses{
     TH1D * hWave;
     TPmtSimulation* pmtSimulation;
     TPmtEvent* pmtEvent;
-    std::vector<Double_t> PulseStartTime(Int_t event, Int_t nPhotons);
+    std::vector<Double_t> PulseStartTime(Int_t event, Int_t nPhotons,Double_t tau3);
     Double_t convolve(Double_t *x, Double_t *par);
     void conv(double s=1.e-9,double t1=2.e-9,double t2=60e-9,double t12=0.75,double mean = 10.0e-9);
 };
