@@ -159,9 +159,9 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hBaselineFit[ipmt]  = new TH1D(Form("BaselineFit%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
         hNHits[ipmt] = new TH1D(Form("NHits%i",ipmt),Form(" number of hits PMT %i ",ipmt),10,0,50);
         hNegNHits[ipmt] = new TH1D(Form("NegNHits%i",ipmt),Form(" number of neg hits PMT %i ",ipmt),10,0,50);
-        hLife[ipmt] = new TH1D(Form("Life%i",ipmt),Form(" lifetime PMT %i ",ipmt),2000,-maxLife,maxLife);
+        hLife[ipmt] = new TH1D(Form("Life%i",ipmt),Form(" lifetime PMT %i ",ipmt),1000,0,maxLife);
         hLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
-        hNLife[ipmt] = new TH1D(Form("NLife%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),2000,-maxLife,maxLife);
+        hNLife[ipmt] = new TH1D(Form("NLife%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
         hNLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
          //hLife[ipmt]->Sumw2();
         if(isSimulation) {
@@ -470,18 +470,27 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Double_t> ddigi,Double_t 
     phit.startTime=pmtEvent->time[klow];
     phit.peakWidth=pmtEvent->time[khigh] - pmtEvent->time[klow];
 
-    /* just use the biggest pulse */
+    /* just use the biggest pulse 
     if(qsum>qmax) {
       qmax=qsum;
       firstTime=phit.startTime*1E6;
       firstCharge = qsum;
     }
+    */
 
     Double_t hitTime = phit.startTime*1E6;
 
     pmtHits.insert ( std::pair<Double_t,TPmtHit>(hitTime,phit) );
     hPeakNWidth->Fill(phit.lastBin-phit.firstBin+1);
   }
+
+  // first time, charge from map
+  hitMapIter hitIter;
+  hitIter=pmtHits.begin();
+  TPmtHit phit0 = hitIter->second;
+  firstTime = phit0.startTime*1E6;
+  firstCharge = phit0.qsum;
+
   if(firstCharge<firstChargeCut&&pmtHits.size()>0&&qmax>firstChargeCut) printf("\t WARNING XXXXX NO FIRST PULSE pulses %i max %f \n",int(pmtHits.size()),qmax);
   //printf("\t XXXXX nhits %i first %f charge %f \n",int(pmtHits.size()),firstTime,firstCharge);
 
