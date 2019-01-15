@@ -43,6 +43,7 @@ class genPulses{
     TH1D* hTime;
     TH1D* hNoise;
     TH1D* hTest;
+    TH1D* hTestq;
     TH1D * hSignal;
     TH1D * hWave;
     TPmtSimulation* pmtSimulation;
