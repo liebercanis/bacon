@@ -146,5 +146,7 @@ public :
   TH2D* hQStart;
   TH2D* hNegQStart;
   TH2D* hQFirst;
+  TH1D* hSimHitMatched;
+  TH1D* hSimHitMissed;
 };
 

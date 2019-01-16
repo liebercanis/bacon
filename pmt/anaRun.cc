@@ -148,7 +148,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       simHitMatchTime=100.0*timeUnit;
       printf(" \n\n ***** setting time unit %E maxLife %f \n",timeUnit,maxLife);
       if(isSimulation) printf(" \n\n ***** setting matching time  %E \n",simHitMatchTime);
-      if(isSimulation) ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match:nnot:nmiss");
+      if(isSimulation) {
+        hSimHitMatched = new TH1D("SimHitMatched","",1000,0,100*simHitMatchTime);
+        hSimHitMissed = new TH1D("SimHitMissed","",1000,0,100*simHitMatchTime);
+        ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match:nnot:nmiss");
+      }
       for(int ipmt=0; ipmt<gotPMT; ++ipmt) {
         hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
         hPMTSignal[ipmt] = new TH1D(Form("PMTSignal%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
@@ -336,8 +340,14 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         unsigned nmiss=0;
         for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
           bool matched=false;
-          for(unsigned ihit=0; ihit< hitMatchNumber.size(); ++ihit) if(int(isim)==hitMatchNumber[ihit]) matched=true;
-          if(!matched) ++nmiss;
+          for(unsigned ihit=0; ihit< hitMatchNumber.size(); ++ihit) if(int(isim)==hitMatchNumber[ihit]) {
+            hSimHitMatched->Fill(startTime[isim]);
+            matched=true;
+          }
+          if(!matched) {
+            hSimHitMissed->Fill(startTime[isim]);
+            ++nmiss;
+          }
         }
 
         ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch),float(nnot),float(nmiss));
