@@ -8,6 +8,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   int nHists=0;
   int nHistsMax=50;
   firstChargeCut=0.1;
+  microSec=1.0E6;
   ran = new TRandom3();
   Double_t simHitMatchTime=0;
   Double_t sigma=0;
@@ -25,7 +26,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   ntCal =  new TNtuple("ntCal","ntuple Cal","iev:ipmt:base:sigma:dbase:dsigma");
   ntHit =  new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax:match");
   ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax");
-  ntDer =  new TNtuple("ntDer"," deriviative ","sigma:d0:kover:type");
+  ntDer =  new TNtuple("ntDer"," deriviative ","t:sigma:d0:kover:type");
   ntEvent= new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:qp0:qp1:q00:q01:q10:q11:qsum0:qsum1");
   ntPulse= new TNtuple("ntPulse"," pulse ","sum:shigh:slow:nsamp:kover:qlow:qhigh:klow:khigh");
   ntWave = new TNtuple("ntWave"," wave ","event:v:d");
@@ -143,7 +144,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
     // define pmt signal histograms
     if(ientry==0) {
       source = new Double_t[nSamples];
-      Double_t maxLife = pmtEvent->time[nSamples-1]*1E6;
+      Double_t maxLife = pmtEvent->time[nSamples-1]*microSec;
       timeUnit=pmtEvent->time[1]-pmtEvent->time[0];
       simHitMatchTime=100.0*timeUnit;
       printf(" \n\n ***** setting time unit %E maxLife %f \n",timeUnit,maxLife);
@@ -154,13 +155,15 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match:nnot:nmiss");
       }
       for(int ipmt=0; ipmt<gotPMT; ++ipmt) {
-        hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
-        hPMTSignal[ipmt] = new TH1D(Form("PMTSignal%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
-        hPMTDerivative[ipmt] = new TH1D(Form("PMTDeriv%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
-        hSum[ipmt] = new TH1D(Form("SumPmt%i",ipmt),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+        Double_t pmtXLow= pmtEvent->time[0]*microSec;
+        Double_t pmtXHigh= pmtEvent->time[nSamples-1]*microSec;
+        hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
+        hPMTSignal[ipmt] = new TH1D(Form("PMTSignal%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
+        hPMTDerivative[ipmt] = new TH1D(Form("PMTDeriv%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
+        hSum[ipmt] = new TH1D(Form("SumPmt%i",ipmt),"",nSamples,pmtXLow,pmtXHigh);
         hSum[ipmt]->GetXaxis()->SetTitle(" seconds ");
-        hBaseline[ipmt]  = new TH1D(Form("Baseline%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
-        hBaselineFit[ipmt]  = new TH1D(Form("BaselineFit%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+        hBaseline[ipmt]  = new TH1D(Form("Baseline%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
+        hBaselineFit[ipmt]  = new TH1D(Form("BaselineFit%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
         hNHits[ipmt] = new TH1D(Form("NHits%i",ipmt),Form(" number of hits PMT %i ",ipmt),10,0,50);
         hNegNHits[ipmt] = new TH1D(Form("NegNHits%i",ipmt),Form(" number of neg hits PMT %i ",ipmt),10,0,50);
         hLife[ipmt] = new TH1D(Form("Life%i",ipmt),Form(" lifetime PMT %i ",ipmt),1000,0,maxLife);
@@ -169,7 +172,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hNLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
          //hLife[ipmt]->Sumw2();
         if(isSimulation) {
-          hPMTSim[ipmt] = new TH1D(Form("PMTSim%i_%s",ipmt,tag.Data()),"",nSamples,pmtEvent->time[0],pmtEvent->time[nSamples-1]);
+          hPMTSim[ipmt] = new TH1D(Form("PMTSim%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
           hPMTSimHitMatch[ipmt] = new TH1D(Form("PMTSimHitMatch%i_%s",ipmt,tag.Data()),"",1000,0,100*simHitMatchTime);
         }      
       }
@@ -193,7 +196,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       Double_t digi0 = -1.0*(double(volt0));
       ddigi[0].push_back(digi0);
       ndigi[0].push_back(-digi0);
-      hPMTRaw[0]->SetBinContent(isample+1,digi0);
+      hPMTRaw[0]->SetBinContent(isample+1,digi0*microSec);
     }
 
     // loop over PMT 2
@@ -202,13 +205,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       Double_t digi1 = -1.0*(double(volt1));
       ddigi[1].push_back(digi1);
       ndigi[1].push_back(-digi1);
-      hPMTRaw[1]->SetBinContent(isample+1,digi1);
+      hPMTRaw[1]->SetBinContent(isample+1,digi1*microSec);
     }
 
      
     
     //FFT
-    if(ientry<2) {
+    if(ientry<1) {
        for(int ipmt=0; ipmt<2; ++ipmt) if(ddigi[ipmt].size()>0) FFT(ipmt,ientry,ddigi[ipmt]);
     }
   
@@ -218,7 +221,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       deriv[j] = differentiate( ddigi[j],windowSize);
       nderiv[j] = differentiate( ndigi[j],windowSize);
       for(unsigned isample = 0; isample < deriv[j].size(); isample++){
-        hPMTDerivative[j]->SetBinContent(isample+1,deriv[j][isample]);
+        hPMTDerivative[j]->SetBinContent(isample+1,deriv[j][isample]*microSec);
         ntWave->Fill(ientry,ddigi[j][isample],deriv[j][isample]);
         getAverage(deriv[j],derAve[j],derSigma[j]);
       }
@@ -256,7 +259,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         if(ddigi[pmtNum][i]>maxSample[pmtNum])  maxSample[pmtNum] = ddigi[pmtNum][i];
         ///ddigi[pmtNum][i] = ddigi[pmtNum][i]-baselineDigi[pmtNum][i];// + sDev[pmtNum];
         //ndigi[pmtNum][i] = ndigi[pmtNum][i]+baselineDigi[pmtNum][i];// + sDev[pmtNum];
-        hPMTSignal[pmtNum]->SetBinContent(i,ddigi[pmtNum][i]-baselineDigi[pmtNum][i]);
+        hPMTSignal[pmtNum]->SetBinContent(i,ddigi[pmtNum][i]*microSec-baselineDigi[pmtNum][i]);
       }
 
 
@@ -303,7 +306,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       //if(firstCharge<firstChargeCut&&phit0.qsum>firstChargeCut) 
       if(firstTime==1E9&&phit0.qsum>firstChargeCut) 
         printf(" WARNING NO FIRST PULSE event %i  pmt %i pulses %i qhit %f time %f first %f charge %f \n",
-            ientry,pmtNum,nhits,phit0.qsum,phit0.startTime*1E6,firstTime,firstCharge);
+            ientry,pmtNum,nhits,phit0.qsum,phit0.startTime*microSec,firstTime,firstCharge);
 
    
       // compare hits and simulation 
@@ -314,7 +317,8 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         std::vector<Double_t> hitMatch(pmtHits.size(),100.);
         std::vector<Int_t> hitMatchNumber(pmtHits.size(),-1);
         for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
-          hPMTSim[pmtNum]->Fill(startTime[isim]);
+          hPMTSim[pmtNum]->Fill(startTime[isim]*microSec);
+          //printf(" YYYYY %u %u %f\n",ientry,isim,startTime[isim]*microSec);
           unsigned ihit=0;
           for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
             TPmtHit phiti = hitIter->second;
@@ -346,6 +350,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
           }
           if(!matched) {
             hSimHitMissed->Fill(startTime[isim]);
+            printf(" \t\t >>>>>> missed event %u hit %u of %lu time %f (microsec) \n",ientry, isim, startTime.size(), startTime[isim]*microSec);
             ++nmiss;
           }
         }
@@ -354,7 +359,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         if(pmtNum==0) simMatchStats->fill(startTime.size(),pmtHits.size(),nmatch,nnot,nmiss);
         //printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  not %u \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch,nnot);
         //if(ientry%printInterval==0) simMatchStats->print();
-        simMatchStats->print();
+        if(ientry%10==0) simMatchStats->print();
       }
 
       if(nHists<nHistsMax) {
@@ -366,12 +371,12 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       int hitCount=0;
       for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
         TPmtHit phiti = hitIter->second;
-        Double_t phitTime =  phiti.startTime*1E6-firstTime; 
+        Double_t phitTime =  phiti.startTime*microSec-firstTime; 
         hQStart->Fill(phitTime,phiti.qsum);
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
         Int_t istartBin =  hLife[pmtNum]->FindBin(phitTime); 
         qsum[pmtNum] += phiti.qsum;
-        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*1E6, phitTime,phiti.qsum,nwidth,phiti.qpeak,float(isMatch[hitCount]));
+        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec, phitTime,phiti.qsum,nwidth,phiti.qpeak,float(isMatch[hitCount]));
         if(phitTime!=0&&firstCharge>firstChargeCut) hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
         ++hitCount;
       }
@@ -390,23 +395,23 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       for (hitMapIter nhitIter=npmtHits.begin(); nhitIter!=npmtHits.end(); ++nhitIter) {
         TPmtHit phiti = nhitIter->second;
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
-        Double_t phitTime =  phiti.startTime*1E6-nfirstTime;
+        Double_t phitTime =  phiti.startTime*microSec-nfirstTime;
         hNegQStart->Fill(phitTime,phiti.qsum);
         Int_t istartBin =  hNLife[pmtNum]->FindBin(phitTime);
-        ntNHit->Fill(pmtNum,nhits,hitCount++,istartBin, phiti.startTime*1E6,phitTime,phiti.qsum,nwidth,phiti.qpeak);
+        ntNHit->Fill(pmtNum,nhits,hitCount++,istartBin, phiti.startTime*microSec,phitTime,phiti.qsum,nwidth,phiti.qpeak);
         if(phitTime!=0&&nfirstCharge>firstChargeCut) hNLife[pmtNum]->SetBinContent( istartBin, hNLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
       }
       if(nfirstTime==1E9&&nphit0.qsum>firstChargeCut) 
         printf(" WARNING NO NEGATIVE FIRST PULSE event %i  pmt %i pulses %i qhit %f time %f first %f charge %f \n",
-            ientry,pmtNum,negnhits,nphit0.qsum,nphit0.startTime*1E6,nfirstTime,nfirstCharge);
+            ientry,pmtNum,negnhits,nphit0.qsum,nphit0.startTime*microSec,nfirstTime,nfirstCharge);
 
 
 
       // save for npmtHit ntuple
       qpmt[pmtNum][0]=phit0.qsum;
-      tpmt[pmtNum][0]=phit0.startTime*1E6;    // milli-sceconds 
+      tpmt[pmtNum][0]=phit0.startTime*microSec;    // milli-sceconds 
       qpmt[pmtNum][1]=phit1.qsum;
-      tpmt[pmtNum][1]=phit1.startTime*1E6;
+      tpmt[pmtNum][1]=phit1.startTime*microSec;
 
       // pedestal pulses 
       for(int i = 0; i < int(ddigi[pmtNum].size()); i++){
@@ -436,7 +441,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       ntEvent->Fill(ientry,npmtHit[0],npmtHit[1],tpmt[0][0],tpmt[0][1],tpmt[1][0],
           tpmt[1][1],qped[0],qped[1],qpmt[0][0],qpmt[0][1],qpmt[1][0],qpmt[1][1],qsum[0],qsum[1]);
   }
-  printf(" total hits %i, %i out of %lld events\n",totalHits[0],totalHits[1],nentries);
+  printf(" total hits PMT1 %i PMT2 %i out of %lld events\n",totalHits[0],totalHits[1],nentries);
 
   outfile->Purge();
   outfile->Write();
@@ -483,12 +488,12 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Double_t> ddigi,Double_t 
     /* just use the biggest pulse 
     if(qsum>qmax) {
       qmax=qsum;
-      firstTime=phit.startTime*1E6;
+      firstTime=phit.startTime*microSec;
       firstCharge = qsum;
     }
     */
 
-    Double_t hitTime = phit.startTime*1E6;
+    Double_t hitTime = phit.startTime*microSec;
 
     pmtHits.insert ( std::pair<Double_t,TPmtHit>(hitTime,phit) );
     hPeakNWidth->Fill(phit.lastBin-phit.firstBin+1);
@@ -498,7 +503,7 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Double_t> ddigi,Double_t 
   hitMapIter hitIter;
   hitIter=pmtHits.begin();
   TPmtHit phit0 = hitIter->second;
-  firstTime = phit0.startTime*1E6;
+  firstTime = phit0.startTime*microSec;
   firstCharge = phit0.qsum;
 
   if(firstCharge<firstChargeCut&&pmtHits.size()>0&&qmax>firstChargeCut) printf("\t WARNING XXXXX NO FIRST PULSE pulses %i max %f \n",int(pmtHits.size()),qmax);
@@ -710,7 +715,7 @@ std::vector<Double_t> anaRun::getTBaseline(TH1D* hPMTRaw, TH1D* hBaseline, Doubl
   for (int i = 0; i < nbins; i++) {
     vbase[i] -= norm;
     vsort[i] -= norm;
-    hBaseline->SetBinContent(i + 1,vbase[i]);
+    hBaseline->SetBinContent(i + 1,vbase[i]*microSec);
   }
   std::sort(vsort.begin(),vsort.end());
   ave = vbase[0.5*vsort.size()];
@@ -739,7 +744,7 @@ std::vector<Double_t> anaRun::getBaseline(std::vector<Double_t> digi, hitMap pmt
 
   // fill baseline
   for (int i = 0; i <  hBaseline->GetNbinsX(); i++) {
-    hBaselineFit->SetBinContent(i + 1,vbase[i]);
+    hBaselineFit->SetBinContent(i + 1,vbase[i]*microSec);
   }
 
   //Access the fit resuts
@@ -806,55 +811,91 @@ std::vector<Double_t> anaRun::differentiate(std::vector<Double_t> v, unsigned ns
   }
   return d;
 }
-peakType anaRun::derivativePeaks(std::vector<Double_t> v, Int_t nsum, Double_t rms) 
+peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t rms) 
 {
   peakType peakList;
   std::vector<unsigned> crossings;
   std::vector<unsigned> crossingBin;
+  std::vector<double> crossingTime;
+
   unsigned vsize = v.size();
   Double_t cut = 3.5*rms;
   Double_t ncut = -3.5*rms;
   // find all crossings
   for( unsigned ibin=1; ibin< vsize; ++ibin ) {
+    Double_t u = double(ibin)*timeUnit*microSec;
     if( v[ibin]>cut && v[ibin-1] <cut ) {
       crossings.push_back(UPCROSS);
       crossingBin.push_back(ibin);
+      crossingTime.push_back(u);
     } else if( v[ibin]<cut && v[ibin-1] > cut ) {
       crossings.push_back(UPCROSS);
       crossingBin.push_back(ibin);
+      crossingTime.push_back(u);
     } else if( v[ibin]<ncut && v[ibin-1] > ncut ) {
       crossings.push_back(DOWNCROSS);
       crossingBin.push_back(ibin);
+      crossingTime.push_back(u);
     } else if( v[ibin]>ncut && v[ibin-1] < ncut ) {
       crossings.push_back(DOWNCROSS);
       crossingBin.push_back(ibin);
+      crossingTime.push_back(u);
     }
   }
 
+  // label found crossings, intially all false
+  std::vector<bool> crossingFound;
+  crossingFound.resize(crossings.size());
+  for(unsigned jc=0; jc<crossings.size(); ++jc)  {
+    //printf(" crossing %i time %f type %i \n",jc,crossingTime[jc],crossings[jc]);
+    crossingFound[jc]=false;
+  }
+
+
   // parse crossings to make pairs 
   unsigned ip =0; 
-  //printf("crossings %zu \n",crossings.size());
-  while( ip< crossings.size() -2 ) {
-    if( ip<crossings.size()-3&&crossings[ip]==UPCROSS && crossings[ip+1]==UPCROSS && crossings[ip+2]==UPCROSS) {
-      //printf(" peak %i (%i %i )\n",ip,crossings[ip],crossings[ip+1]); 
-      peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
-      ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(0));//sigma:d0:step:dstep
-      ip = ip+2;
-    } else if(ip<crossings.size()-4&&(crossings[ip]==UPCROSS&&crossings[ip+1]==UPCROSS&&crossings[ip+2]==DOWNCROSS&&crossings[ip+3]==DOWNCROSS)) {
-     // printf(" peak %i (%i %i %i %i )\n",ip,crossings[ip],crossings[ip+1],crossings[ip+2],crossings[ip+3]); 
+  //printf("crossings %zu %E %E \n",crossings.size(),cut,ncut);
+  while ( ip<= crossings.size() -4 ) {
+    // UP UP DOWN DOWN 
+    if(crossings[ip]==UPCROSS&&crossings[ip+1]==UPCROSS&&crossings[ip+2]==DOWNCROSS&&crossings[ip+3]==DOWNCROSS) {
+      //printf(" peak %i time %f (%i %i %i %i )\n",ip,crossingTime[ip],crossings[ip],crossings[ip+1],crossings[ip+2],crossings[ip+3]); 
       peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+3]) );
-      ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+3]-crossingBin[ip]),double(1));//sigma:d0:step:dstep
+      ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+3]-crossingBin[ip]),double(0));//sigma:d0:step:dstep
+      crossingFound[ip]=true;
+      crossingFound[ip+1]=true;
+      crossingFound[ip+2]=true;
+      crossingFound[ip+3]=true;
       ip=ip+4;
-    } else if(ip==crossings.size()-2&&crossings[ip]==UPCROSS && crossings[ip+1]==UPCROSS) {
-      //printf(" peak %i (%i %i )\n",ip,crossings[ip],crossings[ip+1]); 
-      peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
-      ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(0));//sigma:d0:step:dstep
-      ++ip;
     } else {
       ++ip;
     }
   }
-
+  //printf("peaks with fours %zu  \n",peakList.size());
+  
+  // pick up UP UP DOWN DOWN cases
+  ip =0; 
+  while ( ip<= crossings.size() -2 ) {  
+    if(!crossingFound[ip]&&!crossingFound[ip+1]) {
+      // UP UP
+      if(crossings[ip]==UPCROSS&&crossings[ip+1]==UPCROSS&&crossings[ip+2]) {
+        //printf(" peak %i time %f (%i %i )\n",ip,crossingTime[ip],crossings[ip],crossings[ip+1]); 
+        peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
+        ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(1));//sigma:d0:step:dstep
+        ip=ip+2;
+        // DOWN DOWN 
+      } else if(crossings[ip]==DOWNCROSS&&crossings[ip+1]==DOWNCROSS&&crossings[ip+2]) {
+        //printf(" peak %i time %f (%i %i )\n",ip,crossingTime[ip],crossings[ip],crossings[ip+1]); 
+        peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
+        ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(2));//sigma:d0:step:dstep
+        ip=ip+2;
+      } else {
+        ip=ip+2;
+      }
+    } else 
+      ip=ip+2;
+  }
+  //printf("peaks with twos %zu  \n",peakList.size());
+ 
   // extend pulses to zero derivative
   for(unsigned ip=0; ip<peakList.size(); ++ip)  {
     // high direction
@@ -878,4 +919,132 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v, Int_t nsum, Double_t r
   // return list
   return peakList;
 }
+/*
+//Weighted Moving Average
+std::vector<Double_t> anaRun::BaselineWMA(std::vector<Double_t> sig,std::vector<Int_t> peaks,Int_t ientry,Int_t N){
+  std::vector<Double_t> Baseline;
+  if(peaks.size() == 0) return Baseline;
+  Int_t ipeak = 1;
+  Int_t startPeak = peaks[0];
+  Int_t stopPeak = -1;//peaks[ipeak+1];
+  std::vector<Double_t> weight;
+  Int_t windowCounter = 0;
+  //set peak weights
+  for(int i = 0; i <sig.size();i++){
+    if(i <= startPeak && i >= stopPeak){
+      weight.push_back(startPeak - stopPeak -1);
+      if(windowCounter > N) N = windowCounter;
+      windowCounter = 0;
+    }
+    else {
+      weight.push_back(1.e-6);
+      windowCounter++;
+     }
+    if(i == peaks[ipeak]){
+      ipeak +=2;
+      if(ipeak -1 == peaks.size()){
+        startPeak = sig.size();
+      }
+      else startPeak = peaks[ipeak-1];
+      stopPeak = peaks[ipeak-2];
+    }
+    //cout<<"Bin "<<i<<", startPeak "<<startPeak<<", stopPeak "<<stopPeak<<", weight "<<weight[i]<<", window "<<window[i]<<", ipeak "<<ipeak<<endl;
+  }
+  if(N > 100)
+    N/=1.5;
+  //  N += 10;
+  //cout<<N<<endl;
+  TH1D * f1 = new TH1D(TString("WMA")+to_string(ientry),TString("WMA")+to_string(ientry)+TString("_N_")+to_string(N),sig.size(),0,pmtEvent->time[NEvents-1]);
+  TH1D * f2 = new TH1D(TString("Weight")+to_string(ientry),TString("Weight")+to_string(ientry),sig.size(),0,pmtEvent->time[NEvents-1]);
+  //obnoxious way of making things faster
+  //i.e. run times does not depend on how big the window, N, is. 
+  //It only depends on total number of points
+  Double_t K_sw = 0;
+  Double_t C_sw = 0;
+  Double_t S_sw = 0;
+  Double_t K_w = 0;
+  Double_t C_w = 0;
+  Double_t S_w = 0;
+  Double_t kc = cos(pi/N);
+  Double_t ks = sin(pi/N);
+  Int_t resetBin = 100;
+  if(sig.size() == 500) resetBin = 20;
+  for(int i = 0;i< sig.size();i++){
+    Int_t hiWindow = std::min(i+N,(Int_t)sig.size() -1);
+    Int_t loWindow = std::max(0,i-N);
+    if(simEvent->baseline.size() != 0)
+      f2->SetBinContent(i+1,-simEvent->baseline[i]*10);
+    if(i%resetBin ==  0){
+      K_sw = 0;C_sw = 0;S_sw = 0;K_w = 0;C_w = 0;S_w = 0;
+      for(int j = loWindow;j<hiWindow;j++){
+        K_sw += sig[j]*weight[j];
+        C_sw += sig[j]*weight[j]*cos((j-i)*pi/N);
+        S_sw += sig[j]*weight[j]*sin((j-i)*pi/N);
+        K_w += weight[j];
+        C_w += weight[j]*cos((j-i)*pi/N);
+        S_w += weight[j]*sin((j-i)*pi/N);
+      }
+    }
+    else{
+      if(i - N <= 0 && i + N <= sig.size() - 1){
+        K_sw = K_sw + sig[i+N]*weight[i+N];
+        Double_t tempC_sw = C_sw;
+        C_sw = kc*C_sw + ks*S_sw - sig[i+N]*weight[i+N];
+        S_sw = kc*S_sw - ks*tempC_sw ;
+        
+        K_w = K_w + weight[i+N];
+        Double_t tempC_w = C_w;
+        C_w = kc*C_w + ks*S_w - weight[i+N];
+        S_w = kc*S_w - ks*tempC_w ;
+      }
+      else if(i - N > 0 && i + N <= sig.size() - 1){
+        K_sw = K_sw - sig[i-1-N]*weight[i-1-N] + sig[i+N]*weight[i+N];
+        Double_t tempC_sw = C_sw;
+        C_sw = kc*C_sw + ks*S_sw + kc*sig[i-1-N]*weight[i-1-N] - sig[i+N]*weight[i+N];
+        S_sw = kc*S_sw - ks*tempC_sw - ks*sig[i-1-N]*weight[i-1-N];
+        
+        K_w = K_w - weight[i-1-N] + weight[i+N];
+        Double_t tempC_w = C_w;
+        C_w = kc*C_w + ks*S_w + kc*weight[i-1-N] - weight[i+N];
+        S_w = kc*S_w - ks*tempC_w - ks*weight[i-1-N];
+      }
+      else if(i - N > 0 && i + N > sig.size() - 1){
+        K_sw = K_sw - sig[i-1-N]*weight[i-1-N];
+        Double_t tempC_sw = C_sw;
+        C_sw = kc*C_sw + ks*S_sw + kc*sig[i-1-N]*weight[i-1-N];
+        S_sw = kc*S_sw - ks*tempC_sw - ks*sig[i-1-N]*weight[i-1-N];
 
+        K_w = K_w - weight[i-1-N];
+        Double_t tempC_w = C_w;
+        C_w = kc*C_w + ks*S_w + kc*weight[i-1-N];
+        S_w = kc*S_w - ks*tempC_w-ks*weight[i-1-N];
+      }
+      else if(i - N <=0 && i + N > sig.size() - 1){
+        K_sw = K_sw;
+        Double_t tempC_sw = C_sw;
+        C_sw = kc*C_sw + ks*S_sw;
+        S_sw = kc*S_sw - ks*tempC_sw;
+
+        K_w = K_w - weight[i-1-N];
+        Double_t tempC_w = C_w;
+        C_w = kc*C_w + ks*S_w;
+        S_w = kc*S_w - ks*tempC_w;
+      }
+      else{ cout<<"you messed up the logic on the moving baseline"<<endl;}
+    }
+    //cout<<"ientry"<<ientry<<" "<<i<<"...K_sw "<<K_sw<<", C_sw "<<C_sw<<", S_sw "<<S_sw<<", K_w "<<K_w<<", C_w "<<C_w<<"..."<< (K_sw+C_sw)/(K_w+C_w)<<endl;
+    f1->SetBinContent(i+1,(K_sw+C_sw)/(K_w+C_w));
+    Baseline.push_back((K_sw+C_sw)/(K_w+C_w));
+  }
+  f1->SetLineColor(6);
+  f1->Draw("same");
+  //f1->Write();
+  if(ientry > NHistograms){
+    delete f2;
+    delete f1;
+  }
+
+  return Baseline;
+}
+
+*/

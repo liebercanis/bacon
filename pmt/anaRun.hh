@@ -50,6 +50,7 @@ public :
   enum {baseLineHalfWindow = 200}; // even integer
   double fsigma;
   double timeUnit;
+  double microSec;
   bool isSimulation;
   Int_t nSigma;
   Int_t aveWidth;
@@ -73,7 +74,7 @@ public :
   Double_t firstChargeCut;
 
   //
-  peakType  derivativePeaks(std::vector<Double_t> v, Int_t nwindow, Double_t rms); 
+  peakType  derivativePeaks(std::vector<Double_t> v,  Int_t nwindow, Double_t rms); 
   hitMap makeHits( peakType peakList, std::vector<Double_t> ddigi,Double_t sigma, Double_t& firstTime, Double_t& firstCharge);
   std::vector<Double_t> SimpleFilter(std::vector<Double_t> in);
   std::vector<Double_t> SimpleLowPassFilter(std::vector<Double_t> in, Double_t a);
