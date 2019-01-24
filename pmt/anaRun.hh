@@ -72,10 +72,11 @@ public :
   Double_t* source;
   TRandom3 *ran;
   Double_t firstChargeCut;
+  Double_t lifeChargeCut;
 
   //
-  peakType  derivativePeaks(std::vector<Double_t> v,  Int_t nwindow, Double_t rms); 
-  hitMap makeHits( peakType peakList, std::vector<Double_t> ddigi,Double_t sigma, Double_t& firstTime, Double_t& firstCharge);
+  peakType  derivativePeaks(std::vector<Double_t> v,  Int_t nwindow, Double_t rms, std::vector<Int_t>& peakKind); 
+  hitMap makeHits( peakType peakList, std::vector<Int_t> peakKind, std::vector<Double_t> ddigi,Double_t sigma, Double_t& firstTime, Double_t& firstCharge);
   std::vector<Double_t> SimpleFilter(std::vector<Double_t> in);
   std::vector<Double_t> SimpleLowPassFilter(std::vector<Double_t> in, Double_t a);
   std::vector<Double_t> SimpleHighPassFilter(std::vector<Double_t> in, Double_t a);
@@ -83,12 +84,18 @@ public :
   std::vector<Double_t> BubbleSort(std::vector<Double_t> A);
   std::vector<Double_t> getTBaseline(TH1D* hPMTRaw, TH1D* hBaseline, Double_t& ave, Double_t& aveSigma);
   std::vector<Double_t> getBaseline(std::vector<Double_t> digi, hitMap pmtHits, TH1D* hBaselineFit, TH1D* hBaseline, Double_t& ave, Double_t& aveSigma);
-  void getAverage(std::vector<Double_t> digi, Double_t& ave, Double_t& sigma);
- 
+
+  std::vector<Double_t> getBaselineWMA(Double_t ave, std::vector<Double_t> sig, std::vector<Double_t> weight,Int_t NWindow);
+  std::vector<Double_t> getBaselineWMARecursive(Double_t ave, std::vector<Double_t> sig, std::vector<Double_t> weight,Int_t NWindow);
+  std::vector<Double_t> getBaselineWMANeil(Double_t ave,std::vector<Double_t> sig, std::vector<Double_t> weight,Int_t N);
+
+
+  std::vector<Double_t> getBaselineWeights(unsigned arraySize, peakType peakList,Int_t& maxwidth);
+  void getAverage(std::vector<Double_t> digi, Double_t& ave, Double_t& sigma); 
   void plotWave(Int_t iev, Int_t pmtNum, hitMap pmtHits);
   void sumWave(Int_t ipmt);
 
-  std::vector<Double_t> differentiate(std::vector<Double_t> v, unsigned nstep);  
+  std::vector<Double_t> differentiate(std::vector<Double_t> v, unsigned nstep); 
 
   //Double_t convolve(Double_t *x, Double_t *par);
   Int_t nSamples;
@@ -101,6 +108,7 @@ public :
   //std::pair<TH1D*,std::vector<Double_t> > FFTFilter(Int_t ipmt,Int_t ievent,Double_t norm,std::vector<Double_t> signal);
   std::vector<std::complex<double> > FFT(Int_t ipmt,Int_t ievent,std::vector<Double_t> signal);
   std::vector<Double_t > inverseFFT(Int_t ipmt,Int_t ievent, std::vector<std::complex<double> > VectorComplex,std::vector<Double_t> sum);
+  int nMaxHistEvents;
   // histogram pointers
   TNtuple *ntWave;
   TNtuple *ntHit;
@@ -109,6 +117,7 @@ public :
   TNtuple *ntCal;
   TNtuple *ntPulse;
   TNtuple *ntDer;
+  TNtuple *ntBase;
   TNtuple *ntSimMatch;
   TH1D* hFFT[NPMT];
   TH1D* hHitQ[NPMT];
@@ -121,10 +130,11 @@ public :
   TH1D* hPMTDerivative[NPMT];
   TH1D* hSum[NPMT];
   TH1D* hLife[NPMT];
+  TH1D* hLifeCut[NPMT];
   TH1D* hNLife[NPMT];
+  TH1D* hNLifeCut[NPMT];
   
-  TH1D* hWeight;
-  TH1D* hWeightOne;
+  TH1D* hWeight[NPMT];
   TH1D* hNoise;
   TH1D* hFFTNoise;
   TH1D* hBase;
@@ -140,6 +150,7 @@ public :
   TH1D* hSlideLow;
   TH1D* hBaseline[NPMT];
   TH1D* hBaselineFit[NPMT];
+  TH1D* hBaselineWMA[NPMT];
   TH1D* hDeltaV;
   TH1D* hStartTime;
   TH1D* hQMax;

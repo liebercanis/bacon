@@ -28,8 +28,9 @@ class TPmtHit: public TNamed {
     Double_t peakMaxTime;
     Int_t peakBin;
     Double_t qsum;
+    Int_t kind;
 
-    ClassDef(TPmtHit,3)
+    ClassDef(TPmtHit,4)
 };
 #endif
 

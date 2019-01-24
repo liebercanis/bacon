@@ -24,6 +24,7 @@ class PulseFunction {
 genPulses::genPulses(Int_t maxEvents)
 {
   Double_t tau3 = 1.0E-6; // triplet lifetime
+  Double_t eventTime = 4.0E-6;
   Int_t nEvents = maxEvents;
   TDatime time;
   rand.SetSeed(time.GetTime());
@@ -81,12 +82,12 @@ genPulses::genPulses(Int_t maxEvents)
   outFile->Append(fBound);
 
 
-  fBaseSag = new TF1("Baseline_Sag","[0]*TMath::Exp(-x/[1])*(1-0.5*TMath::Sin(4*(x-[2])/(2*[1])))",300e-9,4e-6);
+  //fBaseSag = new TF1("Baseline_Sag","[0]*TMath::Exp(-x/[1])*(1-0.5*TMath::Sin(4*(x-[2])/(2*[1])))",300e-9,4e-6);
+  fBaseSag = new TF1("Baseline_Sag","[0]*TMath::Exp(-x/[1])*(1-0.5*TMath::Sin(2*TMath::Pi()*x/[2]))",0,eventTime);
   // base sagging
   fBaseSag->SetParameter(0,gaussSigma*10);
-  fBaseSag->SetParameter(0,1);
-  fBaseSag->SetParameter(1,1e-6);
-  fBaseSag->SetParameter(2,0);
+  fBaseSag->SetParameter(1,eventTime);
+  fBaseSag->SetParameter(2,eventTime/2.0);
   //TCanvas *csag = new TCanvas("sag-func","sag-func");
   //fBaseSag->Draw("lp");
   outFile->Append(fBaseSag);
@@ -146,20 +147,16 @@ genPulses::genPulses(Int_t maxEvents)
     }
 
     // set baseline sagging 
-    if(-hSignal1->GetMaximum() != 0) fBaseSag->SetParameter(0,-hSignal->GetMaximum()/2);
-    else fBaseSag->SetParameter(0,gaussSigma*10);
-    fBaseSag->SetParameter(1,1e-6);
-    fBaseSag->SetParameter(2,0);
+    //if(-hSignal1->GetMaximum() != 0) fBaseSag->SetParameter(0,-hSignal->GetMaximum()/2);
+    //else fBaseSag->SetParameter(0,gaussSigma*10);
+    //fBaseSag->SetParameter(1,1e-6);
+    //fBaseSag->SetParameter(2,0);
 
     // add noise
     for(int i = 0; i <hWave1->GetNbinsX();i++){
       Double_t noise = gaussMean+gaussSigma*sqrt(-2.0*log(rand.Rndm()))*cos(2*TMath::Pi()*rand.Rndm()) ;
       hNoise->Fill(noise);
-      hWave1->SetBinContent(i+1,noise+hWave1->GetBinContent(i+1));
-      if(hWave1->GetBinCenter(i+1) > 300e-9)
-       hWave1->SetBinContent(i+1,noise+hWave1->GetBinContent(i+1)+fBaseSag->Eval(hWave1->GetBinCenter(i+1)));
-      else
-        hWave1->SetBinContent(i+1,noise+hWave1->GetBinContent(i+1));
+      hWave1->SetBinContent(i+1,noise+hWave1->GetBinContent(i+1)+fBaseSag->Eval(hWave1->GetBinCenter(i+1)));
       // make vectors for event
       sig.push_back(-noise-hWave1->GetBinContent(i+1));
       time.push_back(hWave1->GetBinCenter(i+1));
