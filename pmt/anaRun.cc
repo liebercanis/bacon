@@ -6,7 +6,8 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   printf(" starting anaRun tag %s \n",tag.Data());
   int printInterval=100;
   int nHists=0;
-  nMaxHistEvents=10;
+  unsigned noPeakEventCount=0;
+  nMaxHistEvents=100;
   firstChargeCut=0.1;
   lifeChargeCut=0.3;
   microSec=1.0E6;
@@ -238,7 +239,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       ntCal->Fill(ientry,j,rawAve[j],rawSigma[j],derAve[j],derSigma[j]);
     }
 
-      
     
     for(int pmtNum = 0 ; pmtNum < gotPMT; pmtNum++){
   
@@ -250,8 +250,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       Double_t firstTime, firstCharge;
       std::vector<Int_t> peakKind;
       peakType peakList = derivativePeaks(deriv[pmtNum],windowSize,derSigma[pmtNum],peakKind);
-      hitMap  pmtHits = makeHits(peakList,peakKind,ddigi[pmtNum],maxDev,firstTime,firstCharge);
+      if(peakList.size()<1) { 
+        ++noPeakEventCount; continue; 
+      }  
 
+      hitMap  pmtHits = makeHits(peakList,peakKind,ddigi[pmtNum],maxDev,firstTime,firstCharge);
       // negative pulses
       Double_t nfirstTime, nfirstCharge;
       std::vector<Int_t> npeakKind;
@@ -273,7 +276,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       }
 
 
-      if(ientry%printInterval==0) printf(" ...... %i ave %.4E sdev0 %.4E dave %.4E dsigma %.4E \n",
+      if(ientry%printInterval==0) printf(" \t  %i ave %.4E sdev0 %.4E dave %.4E dsigma %.4E \n",
           ientry,baseline[pmtNum],sDev[pmtNum],derAve[pmtNum],derSigma[pmtNum]);
 
       // subtract baseline
@@ -294,7 +297,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       hNegNHits[pmtNum]->Fill(negnhits);
 
  
-      if(ientry%printInterval==0) printf(" pmt  %i peaktime %lu nhits %u \n ",pmtNum,peakList.size(),nhits);
+      if(ientry%printInterval==0) printf(" \t pmt  %i peaktime %lu nhits %u \n ",pmtNum,peakList.size(),nhits);
 
       totalHits[pmtNum] += nhits;
 
@@ -387,7 +390,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         if(ientry%printInterval==0) simMatchStats->print();
       }
 
-      if(ientry<nMaxHistEvents) {
+      if(nHists<nMaxHistEvents&&nhits>9) {
         plotWave(ientry,pmtNum,pmtHits );
         ++nHists;
       }
@@ -406,7 +409,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         if(phiti.qsum>lifeChargeCut) hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
         ++hitCount;
       }
-
       // summed wave forms only if passes first charge cut
       if(firstCharge>firstChargeCut) sumWave(pmtNum);
 
@@ -467,8 +469,10 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
     if(npmtHit[0]>0||npmtHit[1]>0) 
       ntEvent->Fill(ientry,npmtHit[0],npmtHit[1],tpmt[0][0],tpmt[0][1],tpmt[1][0],
           tpmt[1][1],qped[0],qped[1],qpmt[0][0],qpmt[0][1],qpmt[1][0],qpmt[1][1],qsum[0],qsum[1]);
+   
+      if(ientry%printInterval==0) printf(" total hits PMT1 %i PMT2 %i out of %u events events with no peaks %u \n",totalHits[0],totalHits[1],ientry,noPeakEventCount);
   }
-  printf(" total hits PMT1 %i PMT2 %i out of %lld events\n",totalHits[0],totalHits[1],nentries);
+  printf(" total hits PMT1 %i PMT2 %i out of %lld events events with no peaks %u \n",totalHits[0],totalHits[1],nentries,noPeakEventCount);
 
   outfile->Purge();
   outfile->Write();
@@ -535,7 +539,6 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
   firstCharge = phit0.qsum;
 
   if(firstCharge<firstChargeCut&&pmtHits.size()>0&&qmax>firstChargeCut) printf("\t WARNING XXXXX NO FIRST PULSE pulses %i max %f \n",int(pmtHits.size()),qmax);
-  //printf("\t XXXXX nhits %i first %f charge %f \n",int(pmtHits.size()),firstTime,firstCharge);
 
   return  pmtHits;
 }
@@ -697,7 +700,6 @@ void anaRun::plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits ) {
   // title with first peak
   histName.Form("WaveEv%i_PMT_%i",ientry,pmtNum);
   TH1F* hist = (TH1F*) hPMTSignal[pmtNum]->Clone(histName);
-  printf("plotWave: %s %.0f \n",hbase->GetName(),hbase->GetEntries());
 
   // fill peaks
   peaksName.Form("PeaksEv%i_PMT_%i",ientry,pmtNum);
@@ -713,6 +715,7 @@ void anaRun::plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits ) {
     TH1F* hist = (TH1F*) hPMTSim[pmtNum]->Clone(histName);
   }
 
+  printf("plotWave: %s %.0f \n",hbase->GetName(),hbase->GetEntries());
 }
 
 // summed waves
@@ -871,6 +874,8 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
       crossingTime.push_back(u);
     }
   }
+
+  if(crossings.size()<4) return peakList;
 
   // label found crossings, intially all false
   std::vector<bool> crossingFound;
