@@ -22,9 +22,18 @@
 // file scope variables 
 TTree *pmtTree;
 TPmtEvent *pmtEvent;
-bool TwoPmts;
 int nDuplicates =0;
 TString tag;
+
+// such a pain to do this.
+std::vector<std::string> getTokens(string str)
+{
+  std::stringstream ss(str);
+  std::istream_iterator<std::string> begin(ss);
+  std::istream_iterator<std::string> end;
+  std::vector<std::string> tokens(begin, end);
+  return tokens;
+}
 
 bool getEventsInDirectory(std::string directory, std::vector<Int_t> &eventNumbers)
 {
@@ -51,7 +60,6 @@ bool getEventsInDirectory(std::string directory, std::vector<Int_t> &eventNumber
 int readEvent(Int_t ievent, TString fileName)
 {
 
-  string line;
   Int_t nlines = 0;
   Double_t time,volt1,volt2;
   std::vector<Double_t> timeVec,volt1Vec,volt2Vec;
@@ -61,13 +69,24 @@ int readEvent(Int_t ievent, TString fileName)
     printf(" cannot open file %s \n",fileName.Data());
     return 0;
   }
+  bool first = true;
+  string line;
+  vector <string> tokens; 
   while (in.good()) {
-    in >> time >> volt1 >> volt2 ;
+    std::getline(in,line);
     if(in.eof()||in.fail()||in.bad()) break;
-    //printf("%.11f %.8f %.8f \n",time,volt1,volt2);
-    timeVec.push_back(time);
-    volt1Vec.push_back(volt1);
-    if(TwoPmts) volt2Vec.push_back(volt2);
+    if(first) { 
+      //cout << "first line " << line << endl;
+      first=false; continue; 
+    }
+    vector<string> tokens = getTokens(line);
+    if(tokens.size()<2) {
+      cout << " bad line " << tokens.size() << "  "  << line << endl;
+      continue;
+    }
+    timeVec.push_back(std::atof(tokens[0].c_str()));
+    volt1Vec.push_back(std::atof(tokens[1].c_str()));
+    if(tokens.size()>2) volt2Vec.push_back(std::atof(tokens[2].c_str()));
     nlines++;
   }
   in.close();
@@ -89,20 +108,17 @@ int readEvent(Int_t ievent, TString fileName)
   } else ++nDuplicates;
 
   // dont want to claer pmtEvent->clear();
-  //printf(" have read %i lines and %llu entries \n",nlines,pmtTree->GetEntries());
+  //printf(" have read %i lines and %llu entries volt1 %lu volt2 %lu\n",nlines,pmtTree->GetEntries(),pmtEvent->volt1.size(),pmtEvent->volt2.size());
 
   return nlines;
     
 }
 
-void readRun(TString dirTag="runNov2018_1", unsigned maxEvents=0)
+void readRun(TString dirTag="run_1000", unsigned maxEvents=3)
 {
-  TwoPmts = false;
   Int_t firstRun=0;
   Int_t lastRun = firstRun;
   printf("readRun tag %s  maxEvents %u first \n",dirTag.Data(),maxEvents);
-  if(TwoPmts) printf("\t reading 2 pmts \n");
-  else  printf("\t WARNING... reading 1 pmt only \n");
   for(Int_t irun  = firstRun; irun <=lastRun;irun++){
     // open ouput file and make some histograms
     TString outFileName; outFileName.Form("rootData/baconRun_%s_%u.root",dirTag.Data(),maxEvents);
@@ -128,7 +144,7 @@ void readRun(TString dirTag="runNov2018_1", unsigned maxEvents=0)
       TString fname;
       fname.Form("%s_%i.txt",tag.Data(),ievent);
       TString fullFileName = dirName + TString("/")+fname;
-      if(ievent%100==0) cout << ievent << "  " << fname << " tree size  " << pmtTree->GetEntries()  << " duplicates " << nDuplicates << endl;
+      if(ievent%10==0) cout << ievent << "  " << fname << " tree size  " << pmtTree->GetEntries()  << " duplicates " << nDuplicates << endl;
       nlines += readEvent(ievent,fullFileName);
     }
     printf(" total of lines %i total number of events is %i number duplicates %i \n",nlines,int(pmtTree->GetEntries()),nDuplicates);

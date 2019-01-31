@@ -1,12 +1,21 @@
 #!/bin/bash
 if [ -z "$1" ]
 then
- echo "usage: runRead <tag>"
+ echo "usage: runRead <tag> optional <number of events>"
  exit
 else 
  TAG=$1
- echo TAG = $TAG
 fi
-echo root -q -b "readRun.cc++(\"$TAG\")"
-root -q -b "readRun.cc++(\"$TAG\")"
+
+if [ -z "$2" ]
+then
+  NEV=0
+ else 
+ NEV=$2
+fi
+
+echo TAG = $TAG NEV = $NEV
+
+echo root -q -b "readRun.cc++(\"$TAG\",$NEV)"
+root -q -b "readRun.cc(\"$TAG\",$NEV)"
 
