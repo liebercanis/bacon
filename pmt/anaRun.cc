@@ -117,7 +117,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
 
   // loop over entries
   if(maxEvents>0) nentries=maxEvents;
-  for (UInt_t ientry=458; ientry<459; ientry++) {
+  for (UInt_t ientry=0; ientry<nentries; ientry++) {
     pmtTree->GetEntry(ientry);
     if(pmtEvent->time.size() == 0) continue;
     nSamples = pmtEvent->time.size();
@@ -136,13 +136,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
     int gotPMT = 0;
     if(pmtEvent->volt1.size()>0)  ++gotPMT;
     if(pmtEvent->volt2.size()>0)  ++gotPMT;
-    if(ientry==458) printf(" .... events %lld samples %i PMT0 %zu PMT1 %zu \n",pmtTree->GetEntries(),nSamples,pmtEvent->volt1.size(),pmtEvent->volt2.size());
+    if(ientry==0) printf(" .... events %lld samples %i PMT0 %zu PMT1 %zu \n",pmtTree->GetEntries(),nSamples,pmtEvent->volt1.size(),pmtEvent->volt2.size());
     
     if(gotPMT<1) return;
 
     TString name; name.Form("%s_Ev%i",tag.Data(),ientry);
     // define pmt signal histograms
-    if(ientry==458) {
+    if(ientry==0) {
       source = new Double_t[nSamples];
       Double_t maxLife = pmtEvent->time[nSamples-1]*microSec;
       timeUnit=pmtEvent->time[1]-pmtEvent->time[0];
@@ -896,7 +896,7 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
       unsigned nzero=0;
       for(unsigned ibin = crossingBin[ip+1]; ibin<crossingBin[ip+2]; ++ibin) if(v[ibin]>0&&v[ibin+1]<0) ++nzero;
       if(nzero<=3) {
-        printf(" peak %i time %f (%i %i %i %i ) nzero %u \n",ip,crossingTime[ip],crossings[ip],crossings[ip+1],crossings[ip+2],crossings[ip+3],nzero);
+        //printf(" peak %i time %f (%i %i %i %i ) nzero %u \n",ip,crossingTime[ip],crossings[ip],crossings[ip+1],crossings[ip+2],crossings[ip+3],nzero);
         peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+3]) );
         peakKind.push_back(0);
         ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+3]-crossingBin[ip]),double(0));//sigma:d0:step:dstep
@@ -904,15 +904,15 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
         crossingFound[ip+1]=true;
         crossingFound[ip+2]=true;
         crossingFound[ip+3]=true;
-        ip=ip+4;}
-      else 
+        ip=ip+4;
+      } else 
         ++ip;
     } else {
       ++ip;
     }
   }
   //printf("peaks with fours %zu  \n",peakList.size());
-  
+
   // pick up UP UP DOWN DOWN cases
   ip =0; 
   while ( ip<= crossings.size() -2 ) {  
