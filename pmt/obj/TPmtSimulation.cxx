@@ -17,5 +17,6 @@ void TPmtSimulation::clear()
   ratio12=0;
   Nphotons=0;
   startTime.clear();
+  q.clear();
  }
 

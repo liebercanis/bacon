@@ -142,6 +142,7 @@ genPulses::genPulses(Int_t maxEvents)
         hWave1->SetBinContent(j+1,hSignal1->GetBinContent(j+1)+qbin);
         sumq += qbin;
       }
+      pmtSimulation->q.push_back(sumq);
       Int_t ibin = hTestq->FindBin(mean*1E6);
       hTestq->SetBinContent( ibin , hTestq->GetBinContent(ibin)+sumq);
     }

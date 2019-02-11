@@ -26,7 +26,8 @@ class TPmtSimulation: public TNamed {
     Double_t ratio12;
     Int_t Nphotons;
     std::vector<Double_t> startTime;
-		ClassDef(TPmtSimulation,1)
+    std::vector<Double_t> q;
+		ClassDef(TPmtSimulation,2)
 };
 #endif
 

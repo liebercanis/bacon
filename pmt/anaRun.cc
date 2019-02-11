@@ -195,6 +195,9 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
     std::vector<std::vector<Double_t> > ndigi; ndigi.resize(NPMT);
     std::vector<std::vector<Double_t> > deriv;  deriv.resize(NPMT);
     std::vector<std::vector<Double_t> > nderiv; nderiv.resize(NPMT);
+    std::vector<std::vector<Double_t> > sddigi; sddigi.resize(NPMT); // baseline subtracted
+    std::vector<std::vector<Double_t> > sndigi; sndigi.resize(NPMT);
+
     
     std::vector<std::vector<Double_t> > baselineDigi; baselineDigi.resize(NPMT);
 
@@ -287,8 +290,15 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       for(int i = 0; i < int(ddigi[pmtNum].size()); i++){
         if(ddigi[pmtNum][i]>maxSample[pmtNum])  maxSample[pmtNum] = ddigi[pmtNum][i];
         hBaselineWMA[pmtNum]->SetBinContent(i,baselineDigi[pmtNum][i]);
+        sddigi[pmtNum].push_back(ddigi[pmtNum][i]-baselineDigi[pmtNum][i]);
+        sndigi[pmtNum].push_back(ddigi[pmtNum][i]-baselineDigi[pmtNum][i]);
         hPMTSignal[pmtNum]->SetBinContent(i,(ddigi[pmtNum][i]-baselineDigi[pmtNum][i]));
       }
+
+      // remake pulses with baseline subtraction
+      pmtHits  = makeHits(peakList,peakKind,sddigi[pmtNum],maxDev,firstTime,firstCharge);
+      npmtHits = makeHits(npeakList,npeakKind,sndigi[pmtNum],maxDev,nfirstTime,nfirstCharge);
+
 
 
       unsigned nhits = pmtHits.size();
