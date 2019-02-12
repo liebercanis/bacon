@@ -1,5 +1,6 @@
 using namespace TMath;
 enum {NPMT=2};
+enum {NHIST=3};
 static  double qmax = 0.5;
 static double qmin = 0.0;
 static Int_t nbins = 500;
@@ -16,8 +17,8 @@ static double fexp(double *xx, double *par)
 }
 
 
-//void life(TString tag = "250kohms_0_5Sigma")
-void life(TString tag = "simEvents_20190122_1000_Ev_0_derivative")
+void life(TString tag = "baconRun_run_4000_0_Ev_0_derivative")
+//void life(TString tag = "simEvents_20190211_10000_Ev_0_derivative")
 {
   TString fileName ; fileName.Form("%s.root",tag.Data());
 
@@ -29,58 +30,53 @@ void life(TString tag = "simEvents_20190122_1000_Ev_0_derivative")
     return;
   }
 
-  TH1D* hlife0;
-  TString htag("LifeCount0");
-  _file0->GetObject(htag,hlife0);
+  TString htag[NHIST];
+  TH1D* hlife[NHIST];
 
-   TH1D* hlifeCut0;
-  _file0->GetObject("LifeCut0",hlifeCut0);
-
-
-  hlife0->Rebin(2);
-  hlifeCut0->Rebin(2);
-  // fit
-   // fit
-  Double_t binwidth = hlife0->GetBinWidth(1);
-  Int_t lowBin = hlife0->FindBin(0.1);
-  Double_t xlow=hlife0->GetBinLowEdge(lowBin);
-  Int_t highBin = hlife0->FindBin(3.5);
-  Double_t xhigh=hlife0->GetBinLowEdge(highBin);
-  Double_t integral = hlife0->Integral();
-  printf(" %s nbins %i lowbin %i xlow %E xhigh %E integral %E width %E \n",hlife0->GetName(),hlife0->GetNbinsX(),lowBin,xlow,xhigh,integral,binwidth); //,hsum1->GetNa
+  htag[0]=TString("Life0");
+  htag[1]=TString("LifeCut0");
+  htag[2]=TString("LifeCount0");
  
-  TF1 *fp[NPMT];  // on for each pmt
-  for(int i=0; i<NPMT; ++i ) {
-    fp[i] = new TF1(Form("fexp-%i",i),fexp,xlow,xhigh,3);
-    fp[i]->SetNpx(1000); // numb points for function
-    fp[i]->SetParName(0,"lifetime");
-    fp[i]->SetParName(1,"integral");
-    fp[i]->SetParName(2,"binwidth");
-    fp[i]->SetParameter(0,1E-6);
-    fp[i]->SetParameter(1,integral);
-    fp[i]->FixParameter(2,binwidth);
+  Double_t tguess;
+  for(int ih=0; ih<NHIST; ++ih) {
+    _file0->GetObject(htag[ih],hlife[ih]);
+    tguess = (hlife[ih]->GetBinWidth(1))*Double_t(hlife[ih]->GetNbinsX())/10;
+    printf(" name %s bin width %f nbins %i tguess %f\n",hlife[ih]->GetName(),hlife[ih]->GetBinWidth(1),hlife[ih]->GetNbinsX(),tguess);
   }
+  TF1 *fp[NHIST];  
+  TCanvas *can[NHIST];
 
-  gStyle->SetOptFit();
-  TString all0Name;
-  all0Name.Form("%s-%s",htag.Data(),tag.Data());
-  TCanvas *call0= new TCanvas(all0Name,all0Name);
-  call0->SetLogy();
-  hlife0->Fit(fp[0],"RL");
-  hlife0->Draw();
-  call0->Print(".png");
-  printf(" pmt %i tau = %f +- %f micro-sec \n",0,fp[0]->GetParameter(0)*1E6,fp[0]->GetParError(0)*1E6);
+  for(int ih=0; ih<NHIST; ++ih) {
+    hlife[ih]->Rebin(2);
+    // fit
+    Double_t binwidth = hlife[ih]->GetBinWidth(1);
+    Int_t lowBin = hlife[ih]->FindBin(.2);
+    Double_t xlow=hlife[ih]->GetBinLowEdge(lowBin);
+    Int_t highBin = hlife[ih]->FindBin(6.0);
+    Double_t xhigh=hlife[ih]->GetBinLowEdge(highBin);
+    Double_t integral = hlife[ih]->Integral();
+    printf(" %s nbins %i lowbin %i xlow %E xhigh %E integral %E width %E \n",
+        hlife[ih]->GetName(),hlife[ih]->GetNbinsX(),lowBin,xlow,xhigh,integral,binwidth); //,hsum1->GetNa
 
+    fp[ih] = new TF1(Form("fexp-%i",ih),fexp,xlow,xhigh,3);
+    fp[ih]->SetNpx(1000); // numb points for function
+    fp[ih]->SetParName(0,"lifetime");
+    fp[ih]->SetParName(1,"integral");
+    fp[ih]->SetParName(2,"binwidth");
+    fp[ih]->SetParameter(0,tguess);
+    fp[ih]->SetParameter(1,integral);
+    fp[ih]->FixParameter(2,binwidth);
 
-  TString all1Name;
-  all1Name.Form("LifeCutPmt0-%s",tag.Data());
-  TCanvas *call1= new TCanvas(all1Name,all1Name);
-  call1->SetLogy();
-  hlifeCut0->Fit(fp[1],"RL");
-  hlifeCut0->Draw();
-  call1->Print(".png");
-  printf(" pmt %i tau = %f +- %f micro-sec \n",0,fp[1]->GetParameter(0)*1E6,fp[1]->GetParError(0)*1E6);
-
+    gStyle->SetOptFit();
+    TString all0Name;
+    all0Name.Form("%s-%s",htag[ih].Data(),tag.Data());
+    can[ih]=new TCanvas(all0Name,all0Name);
+    can[ih]->SetLogy();
+    hlife[ih]->Fit(fp[0],"RL");
+    hlife[ih]->Draw();
+    can[ih]->Print(".png");
+    printf(" pmt %i tau = %f +- %f micro-sec \n",0,fp[0]->GetParameter(0)*1E6,fp[0]->GetParError(0)*1E6);
+  }
   return;
 
 }
