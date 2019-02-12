@@ -1,5 +1,5 @@
 using namespace TMath;
-enum {NPMT=1};
+enum {NPMT=2};
 static  double qmax = 0.5;
 static double qmin = 0.0;
 static Int_t nbins = 500;
@@ -17,7 +17,7 @@ static double fexp(double *xx, double *par)
 
 
 //void life(TString tag = "250kohms_0_5Sigma")
-void life(TString tag = "simEvents_20190211_10000_Ev_0_derivative") 
+void life(TString tag = "simEvents_20190122_1000_Ev_0_derivative")
 {
   TString fileName ; fileName.Form("%s.root",tag.Data());
 
@@ -33,7 +33,12 @@ void life(TString tag = "simEvents_20190211_10000_Ev_0_derivative")
   TString htag("LifeCount0");
   _file0->GetObject(htag,hlife0);
 
-  hlife0->Rebin(10);
+   TH1D* hlifeCut0;
+  _file0->GetObject("LifeCut0",hlifeCut0);
+
+
+  hlife0->Rebin(2);
+  hlifeCut0->Rebin(2);
   // fit
    // fit
   Double_t binwidth = hlife0->GetBinWidth(1);
@@ -63,8 +68,18 @@ void life(TString tag = "simEvents_20190211_10000_Ev_0_derivative")
   call0->SetLogy();
   hlife0->Fit(fp[0],"RL");
   hlife0->Draw();
-  call0->Print(".pdf");
+  call0->Print(".png");
   printf(" pmt %i tau = %f +- %f micro-sec \n",0,fp[0]->GetParameter(0)*1E6,fp[0]->GetParError(0)*1E6);
+
+
+  TString all1Name;
+  all1Name.Form("LifeCutPmt0-%s",tag.Data());
+  TCanvas *call1= new TCanvas(all1Name,all1Name);
+  call1->SetLogy();
+  hlifeCut0->Fit(fp[1],"RL");
+  hlifeCut0->Draw();
+  call1->Print(".png");
+  printf(" pmt %i tau = %f +- %f micro-sec \n",0,fp[1]->GetParameter(0)*1E6,fp[1]->GetParError(0)*1E6);
 
   return;
 
