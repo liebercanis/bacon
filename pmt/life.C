@@ -17,7 +17,7 @@ static double fexp(double *xx, double *par)
 
 
 //void life(TString tag = "250kohms_0_5Sigma")
-void life(TString tag = "simEvents_20181218_10000_Ev_100_derivative") 
+void life(TString tag = "simEvents_20190211_10000_Ev_0_derivative") 
 {
   TString fileName ; fileName.Form("%s.root",tag.Data());
 
@@ -30,15 +30,17 @@ void life(TString tag = "simEvents_20181218_10000_Ev_100_derivative")
   }
 
   TH1D* hlife0;
-  _file0->GetObject("Life0",hlife0);
+  TString htag("LifeCount0");
+  _file0->GetObject(htag,hlife0);
 
   hlife0->Rebin(10);
   // fit
    // fit
   Double_t binwidth = hlife0->GetBinWidth(1);
-  Int_t lowBin = hlife0->FindBin(0);
+  Int_t lowBin = hlife0->FindBin(0.1);
   Double_t xlow=hlife0->GetBinLowEdge(lowBin);
-  Double_t xhigh=hlife0->GetBinLowEdge(hlife0->GetNbinsX());
+  Int_t highBin = hlife0->FindBin(3.5);
+  Double_t xhigh=hlife0->GetBinLowEdge(highBin);
   Double_t integral = hlife0->Integral();
   printf(" %s nbins %i lowbin %i xlow %E xhigh %E integral %E width %E \n",hlife0->GetName(),hlife0->GetNbinsX(),lowBin,xlow,xhigh,integral,binwidth); //,hsum1->GetNa
  
@@ -56,7 +58,7 @@ void life(TString tag = "simEvents_20181218_10000_Ev_100_derivative")
 
   gStyle->SetOptFit();
   TString all0Name;
-  all0Name.Form("LifePmt0-%s",tag.Data());
+  all0Name.Form("%s-%s",htag.Data(),tag.Data());
   TCanvas *call0= new TCanvas(all0Name,all0Name);
   call0->SetLogy();
   hlife0->Fit(fp[0],"RL");

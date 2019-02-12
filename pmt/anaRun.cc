@@ -9,7 +9,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   unsigned noPeakEventCount=0;
   nMaxHistEvents=100;
   firstChargeCut=0.1;
-  lifeChargeCut=0.3;
+  lifeChargeCut=0.04;
   microSec=1.0E6;
   ran = new TRandom3();
   Double_t simHitMatchTime=0;
@@ -173,8 +173,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hNLife[ipmt] = new TH1D(Form("NLife%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
         hNLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
         //
-        hLifeCut[ipmt] = new TH1D(Form("LifeCut%i",ipmt),Form(" lifetime PMT %i ",ipmt),1000,0,maxLife);
+        hLifeCut[ipmt] = new TH1D(Form("LifeCut%i",ipmt),Form(" Q lifetime PMT %i ",ipmt),1000,0,maxLife);
         hLifeCut[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+
+        hLifeCount[ipmt] = new TH1D(Form("LifeCount%i",ipmt),Form(" Start lifetime PMT %i ",ipmt),1000,0,maxLife);
+        hLifeCount[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+
+
         hNLifeCut[ipmt] = new TH1D(Form("NLifeCut%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
         hNLifeCut[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
 
@@ -246,43 +251,26 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
     for(int pmtNum = 0 ; pmtNum < gotPMT; pmtNum++){
   
       /* 
-      ** puluse finding and hit making
+      ** peak finding 
       */
-      Double_t minDev = 0*sDev[pmtNum];
-      Double_t maxDev = fsigma*sDev[pmtNum];
-      Double_t firstTime, firstCharge;
       std::vector<Int_t> peakKind;
       peakType peakList = derivativePeaks(deriv[pmtNum],windowSize,derSigma[pmtNum],peakKind);
       if(peakList.size()<1) { 
         ++noPeakEventCount; continue; 
-      }  
-
-      hitMap  pmtHits = makeHits(peakList,peakKind,ddigi[pmtNum],maxDev,firstTime,firstCharge);
-      // negative pulses
-      Double_t nfirstTime, nfirstCharge;
-      std::vector<Int_t> npeakKind;
-      peakType npeakList = derivativePeaks(nderiv[pmtNum],windowSize,derSigma[pmtNum],npeakKind);
-      hitMap  npmtHits = makeHits(npeakList,npeakKind, ndigi[pmtNum],maxDev,nfirstTime,nfirstCharge);
+      } 
 
       // get baseline
       Int_t maxwidth=0;
       std::vector<Double_t> weight = getBaselineWeights(ddigi[pmtNum].size(),peakList,maxwidth);
+      std::vector<Int_t> npeakKind;
+      peakType npeakList = derivativePeaks(nderiv[pmtNum],windowSize,derSigma[pmtNum],npeakKind);
 
       //baselineDigi[pmtNum] = getBaseline(ddigi[pmtNum],pmtHits,hBaselineFit[pmtNum],hBaseline[pmtNum],baseline[pmtNum],sDev[pmtNum]);
       baselineDigi[pmtNum] = getBaselineWMARecursive(rawAve[pmtNum],ddigi[pmtNum],weight,unsigned(2*maxHalfLength));
       //std::vector<Double_t> basenon = getBaselineWMA(rawAve[pmtNum],ddigi[pmtNum],weight,unsigned(2*maxHalfLength));
       //std::vector<Double_t> baserec = getBaselineWMARecursive(rawAve[pmtNum],ddigi[pmtNum],weight,unsigned(2*maxHalfLength));
 
-      for(unsigned iw=0; iw< weight.size(); ++iw) {
-        //ntBase->Fill(float(iw),weight[iw],baserec[iw],basenon[iw],baselineDigi[pmtNum][iw],float(maxwidth));
-        hWeight[pmtNum]->SetBinContent(iw,weight[iw]);
-      }
-
-
-      if(ientry%printInterval==0) printf(" \t  %i ave %.4E sdev0 %.4E dave %.4E dsigma %.4E \n",
-          ientry,baseline[pmtNum],sDev[pmtNum],derAve[pmtNum],derSigma[pmtNum]);
-
-      // subtract baseline
+     // subtract baseline
       maxSample[pmtNum]=0;
       hPMTSignal[pmtNum]->Reset();
       hBaselineWMA[pmtNum]->Reset();
@@ -295,11 +283,21 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hPMTSignal[pmtNum]->SetBinContent(i,(ddigi[pmtNum][i]-baselineDigi[pmtNum][i]));
       }
 
-      // remake pulses with baseline subtraction
-      pmtHits  = makeHits(peakList,peakKind,sddigi[pmtNum],maxDev,firstTime,firstCharge);
-      npmtHits = makeHits(npeakList,npeakKind,sndigi[pmtNum],maxDev,nfirstTime,nfirstCharge);
+      Double_t minDev = 0*sDev[pmtNum];
+      Double_t maxDev = fsigma*sDev[pmtNum];
+      Double_t firstTime, firstCharge;
+      hitMap  pmtHits = makeHits(peakList,peakKind,sddigi[pmtNum],maxDev,firstTime,firstCharge);
+      // negative pulses
+      Double_t nfirstTime, nfirstCharge;
+      hitMap  npmtHits = makeHits(npeakList,npeakKind, ndigi[pmtNum],maxDev,nfirstTime,nfirstCharge);
 
+      for(unsigned iw=0; iw< weight.size(); ++iw) {
+        //ntBase->Fill(float(iw),weight[iw],baserec[iw],basenon[iw],baselineDigi[pmtNum][iw],float(maxwidth));
+        hWeight[pmtNum]->SetBinContent(iw,weight[iw]);
+      }
 
+      if(ientry%printInterval==0) printf(" \t  %i ave %.4E sdev0 %.4E dave %.4E dsigma %.4E \n",
+          ientry,baseline[pmtNum],sDev[pmtNum],derAve[pmtNum],derSigma[pmtNum]);
 
       unsigned nhits = pmtHits.size();
       hNHits[pmtNum]->Fill(nhits);
@@ -416,7 +414,10 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         qsum[pmtNum] += phiti.qsum;
         ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec, phitTime,phiti.qsum,nwidth,phiti.qpeak,float(isMatch[hitCount]),phiti.kind);
         hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
-        if(phiti.qsum>lifeChargeCut) hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+        if(phiti.qsum>lifeChargeCut) {
+          hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+          hLifeCount[pmtNum]->Fill( phitTime );
+        }
         ++hitCount;
       }
       // summed wave forms only if passes first charge cut

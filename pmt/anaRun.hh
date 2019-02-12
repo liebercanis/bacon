@@ -131,6 +131,7 @@ public :
   TH1D* hSum[NPMT];
   TH1D* hLife[NPMT];
   TH1D* hLifeCut[NPMT];
+  TH1D* hLifeCount[NPMT];
   TH1D* hNLife[NPMT];
   TH1D* hNLifeCut[NPMT];
   
