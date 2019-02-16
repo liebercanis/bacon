@@ -46,6 +46,7 @@ public :
   enum {NPMT=2};
   enum {MAXHIT=3};
   enum {UPCROSS,DOWNCROSS};
+  enum {PWIDTH=100}; //pulse peak half-width
   enum {minLength=7,maxHalfLength=100};
   enum {baseLineHalfWindow = 200}; // even integer
   double fsigma;
@@ -161,5 +162,9 @@ public :
   TH2D* hQFirst;
   TH1D* hSimHitMatched;
   TH1D* hSimHitMissed;
+  TH1D* hLatePulse;
+  TH1D* hPromptPulse;
+  TH1D* hLateNoisePulse;
+
 };
 

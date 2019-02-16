@@ -18,6 +18,12 @@ class TPmtHit: public TNamed {
     ~TPmtHit(){;}
 
     void clear();
+    std::vector<Double_t> getPulse(Int_t nwid, std::vector<Double_t> v ) {
+      std::vector<Double_t> pulse;
+      if(v.size()<peakBin+nwid) return pulse;
+      for(Int_t i=peakBin-nwid; i<= peakBin+nwid; ++i) pulse.push_back(v[i]);
+      return pulse;
+    }
     // data elements
     Int_t firstBin;
     Int_t lastBin;
@@ -30,7 +36,7 @@ class TPmtHit: public TNamed {
     Double_t qsum;
     Int_t kind;
 
-    ClassDef(TPmtHit,4)
+    ClassDef(TPmtHit,5)
 };
 #endif
 
