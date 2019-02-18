@@ -27,6 +27,8 @@ genPulses::genPulses(Int_t maxEvents)
   Double_t eventTime = 10.0E-6;
   Int_t nEvents = maxEvents;
   Double_t meanPhotons=10.0;
+  Int_t nbins = 10000;//0000;
+  startTime = 1.0,stopTime = 10e-6,shiftTime = 1e-6;
   TDatime time;
   rand.SetSeed(time.GetTime());
   Double_t gaussMean = 0,gaussSigma = .0009;
@@ -34,7 +36,7 @@ genPulses::genPulses(Int_t maxEvents)
   TFile *outFile = new TFile(outFileName,"recreate");
   printf(" opening output file %s npulses %f gaussMean %f gaussSigma %f\n",outFileName.Data(),meanPhotons,gaussMean,gaussSigma);
 
-  
+ 
   // setup output tree  
   TTree * simTree = new TTree("pmtTree","pmtTree");
   pmtSimulation = new TPmtSimulation();
@@ -45,6 +47,7 @@ genPulses::genPulses(Int_t maxEvents)
   // pulse function
   PulseFunction  PulseFunc;
   double s=4.e-9;double t1=2.e-9;double t2=8e-9;double t12=1.3;double mean = 100e-9;double amp = 5e-11;
+  double pulseMax = mean+10*t2;
   TF1 * fPulse = new TF1("fpulse",PulseFunc,mean-5.*s, mean+10*t2,6);
   //TF1 * fPulse = new TF1("f",fObj,0,2.e-6,5);
   fPulse->SetLineColor(kBlue);
@@ -60,13 +63,14 @@ genPulses::genPulses(Int_t maxEvents)
   //fPulse->Draw("lp");
   outFile->Append(fPulse);
 
-  startTime = 0,stopTime = 10e-6,shiftTime = 1e-6;
- 
+  //BoxMuller transform
+  TH1D* hPulse = (TH1D*) fPulse->GetHistogram();
+
+
   //scint function
   fScintDist = new TF1("scintDist","expo(0)+expo(2)",startTime,stopTime);
   fScintDist->SetParameter(0,TMath::Log(3.));
   fScintDist->SetParameter(1,-1./6e-9);
-  fScintDist->SetParameter(2,TMath::Log(1));
   fScintDist->SetParameter(3,-1./1e-6);
   //TCanvas *csint = new TCanvas("scint-dist","scint-dist");
   //fScintDist->Draw("lp");
@@ -90,17 +94,18 @@ genPulses::genPulses(Int_t maxEvents)
   fBaseSag->SetParameter(2,eventTime/2.0);
   //TCanvas *csag = new TCanvas("sag-func","sag-func");
   //fBaseSag->Draw("lp");
+ 
   outFile->Append(fBaseSag);
  
   // histograms
   outFile->cd(); 
-  hTest = new TH1D("test","test",1000,startTime*1E6,stopTime*1E6);
-  hTestq = new TH1D("testq","testq",1000,startTime*1E6,stopTime*1E6);
-  Int_t nbins = 10000;//0000;
-  hSignal = new TH1D("signal","signal",nbins,0,stopTime);
-  hTime = new TH1D("time","pulse time",nbins,0,stopTime);
-  hWave = new TH1D("wave","wave",nbins,0,stopTime);
-  hNoise = new TH1D("noise","noise",1000,-10*gaussSigma,10*gaussSigma);
+  hSignal = new TH1D("Signal","signal",nbins,0,stopTime);
+  hWave = new TH1D("Wave","wave",nbins,0,stopTime);
+
+  hTest = new TH1D("Test","test",1000,0,stopTime*1E6);
+  hTestq = new TH1D("Testq","testq",1000,0,stopTime);
+  hTime = new TH1D("Time","pulse time",nbins,0,stopTime);
+  hNoise = new TH1D("Noise","noise",1000,-10*gaussSigma,10*gaussSigma);
 
   
 
@@ -126,23 +131,20 @@ genPulses::genPulses(Int_t maxEvents)
     TH1D* hWave1 = (TH1D*) hWave->Clone(Form("WaveformEv%i",k));
     // loop over pulses
     for(unsigned i = 0; i < pulseTimes.size();i++){
-      mean = pulseTimes[i];
-      hTime->Fill(mean);
-      fPulse->SetParameter(4,mean);
-      //Double_t norm = 0;
-      Int_t startBin = hSignal1->FindBin(mean-5.*s),stopBin = hSignal1->FindBin(mean+10*t2);
-      //for(int j = startBin; j < stopBin;j++) norm += fPulse->Eval(hSignal1->GetBinCenter(j+1));
-     
+      double time = pulseTimes[i];
+      hTime->Fill(time);
+      // 
       Double_t sumq=0;
-      for(int j= startBin; j < stopBin;j++){
-        //BoxMuller transform
-        Double_t qbin = fPulse->Eval(hSignal1->GetBinCenter(j+1));
-        hSignal1->SetBinContent(j+1,hSignal1->GetBinContent(j+1)+qbin);
-        hWave1->SetBinContent(j+1,hSignal1->GetBinContent(j+1)+qbin);
+      for(int j=1;j<=hPulse->GetNbinsX();++j) {
+        double qbin = hPulse->GetBinContent(j);
+        double qtime = hPulse->GetBinLowEdge(j);
+        Int_t jbin = hSignal1->FindBin(qtime+time);
+        hSignal1->SetBinContent(jbin,hSignal1->GetBinContent(jbin)+qbin);
+        hWave1->SetBinContent(jbin,hSignal1->GetBinContent(jbin)+qbin);
         sumq += qbin;
       }
       pmtSimulation->q.push_back(sumq);
-      Int_t ibin = hTestq->FindBin(mean*1E6);
+      Int_t ibin = hTestq->FindBin(time);
       hTestq->SetBinContent( ibin , hTestq->GetBinContent(ibin)+sumq);
     }
 
@@ -165,7 +167,7 @@ genPulses::genPulses(Int_t maxEvents)
     pmtEvent->time = time;
     simTree->Fill();
     pmtSimulation->clear();
-    if(k%100!=0) {
+    if(!(k%100==0)) {
       delete hSignal1;
       delete hWave1;
     }
@@ -188,7 +190,7 @@ std::vector<Double_t> genPulses::PulseStartTime(Int_t event, Double_t meanPhoton
   while(counter < nPhotons){
     failCounter++;
     if(failCounter > 1e7) break;
-    Double_t x = -1e-6*TMath::Log(1-rand.Rndm());
+    Double_t x = -tau3*TMath::Log(1-rand.Rndm());
     Double_t fX = fScintDist->Eval(x);
     Double_t hX = fBound->Eval(x);
     Double_t u = rand.Rndm();

@@ -93,7 +93,7 @@ public :
 
   std::vector<Double_t> getBaselineWeights(unsigned arraySize, peakType peakList,Int_t& maxwidth);
   void getAverage(std::vector<Double_t> digi, Double_t& ave, Double_t& sigma); 
-  void plotWave(Int_t iev, Int_t pmtNum, hitMap pmtHits);
+  void plotWave(Int_t iev, Int_t pmtNum, hitMap pmtHits,  hitMap npmtHits);
   void sumWave(Int_t ipmt);
 
   std::vector<Double_t> differentiate(std::vector<Double_t> v, unsigned nstep); 
@@ -131,6 +131,8 @@ public :
   TH1D* hPMTDerivative[NPMT];
   TH1D* hSum[NPMT];
   TH1D* hLife[NPMT];
+  TH1D* hLifeSim[NPMT];
+  TH1D* hLifeNoise[NPMT];
   TH1D* hLifeCut[NPMT];
   TH1D* hLifeCount[NPMT];
   TH1D* hNLife[NPMT];
