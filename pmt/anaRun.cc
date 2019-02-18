@@ -8,6 +8,8 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   int nHists=0;
   unsigned noPeakEventCount=0;
   nMaxHistEvents=100;
+  Int_t nMaxPulseHist=100;
+  Int_t pulseHistCount=0;
   firstChargeCut=0.1;
   lifeChargeCut=0.04;
   microSec=1.0E6;
