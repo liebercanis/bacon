@@ -23,6 +23,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   //Int_t irunStop = irunStart;
   TString outFileName ; outFileName.Form("%s_Ev_%i_derivative.root",tag.Data(),maxEvents);
   TFile *outfile = new TFile(outFileName,"recreate");
+  outfile->mkdir("pulses");
+  hLatePulse = new TH1D("LatePulse","late pulse",2*PWIDTH,0,2*PWIDTH);
+  hPromptPulse = new TH1D("PromptPulse","prompt pulse",2*PWIDTH,0,2*PWIDTH);
+  hLatePulse = new TH1D("LatePulse","late pulse",2*PWIDTH,0,2*PWIDTH);
+  hLateNoisePulse = new TH1D("LateNoisePulse","late noise pulse",2*PWIDTH,0,2*PWIDTH);
+  outfile->cd();
+
   printf(" opening output file %s \n",outFileName.Data());
   
   //ntBase = new TNtuple("ntBase","base","iw:w:b:bnon:bneil:width");
@@ -183,8 +190,14 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hNLifeCut[ipmt] = new TH1D(Form("NLifeCut%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
         hNLifeCut[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
 
-         //hLife[ipmt]->Sumw2();
+        //hLife[ipmt]->Sumw2();
         if(isSimulation) {
+          hLifeSim[ipmt] = new TH1D(Form("LifeSim%i",ipmt),Form(" real pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
+          hLifeSim[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+
+          hLifeNoise[ipmt] = new TH1D(Form("LifeNoise%i",ipmt),Form(" noise pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
+          hLifeNoise[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+
           hPMTSim[ipmt] = new TH1D(Form("PMTSim%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
           hPMTSimHitMatch[ipmt] = new TH1D(Form("PMTSimHitMatch%i_%s",ipmt,tag.Data()),"",1000,0,100*simHitMatchTime);
         }      
@@ -418,6 +431,31 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
           hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
           hLifeCount[pmtNum]->Fill( phitTime );
         }
+
+        if(isSimulation) {
+          if( isMatch[hitCount] ) hLifeSim[pmtNum]->SetBinContent( istartBin, hLifeSim[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+          else hLifeNoise[pmtNum]->SetBinContent( istartBin, hLifeNoise[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+        }
+
+        // plot  pulses
+        std::vector<Double_t> pulsei = phiti.getPulse(PWIDTH,sddigi[pmtNum]);
+        if( pulseHistCount++ < nMaxPulseHist) {
+          outfile->cd("pulses");
+          TH1D* phist = new TH1D(Form("Pulse%i_Ev%i_PMT%i",hitCount,ientry,pmtNum),Form("Pulse%i_Ev%i_PMT%i tine %.2f ",hitCount,ientry,pmtNum, phitTime), pulsei.size(),0,pulsei.size());
+          for(unsigned ibin=0; ibin<pulsei.size(); ++ibin ) phist->SetBinContent(ibin, pulsei[ibin]);
+          outfile->cd();
+        }
+        if(phitTime>2.0) {
+          for(unsigned ibin=0; ibin<pulsei.size(); ++ibin ) {
+            if(isSimulation) {
+              if( isMatch[hitCount] ) hLatePulse->SetBinContent( ibin, hLatePulse->GetBinContent(ibin)+pulsei[ibin]) ;
+              else hLateNoisePulse->SetBinContent( ibin, hLateNoisePulse->GetBinContent(ibin)+pulsei[ibin]) ;
+            } else 
+              hLatePulse->SetBinContent( ibin, hLatePulse->GetBinContent(ibin)+pulsei[ibin]) ;
+          }
+        } else 
+          for(unsigned ibin=0; ibin<pulsei.size(); ++ibin ) hPromptPulse->SetBinContent( ibin, hPromptPulse->GetBinContent(ibin)+pulsei[ibin]) ;
+
         ++hitCount;
       }
       // summed wave forms only if passes first charge cut
