@@ -135,6 +135,7 @@ public :
   TH1D* hLifeNoise[NPMT];
   TH1D* hLifeCut[NPMT];
   TH1D* hLifeCount[NPMT];
+  TH1D* hLifeTrue[NPMT];
   TH1D* hNLife[NPMT];
   TH1D* hNLifeCut[NPMT];
   

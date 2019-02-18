@@ -197,10 +197,14 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
           hLifeSim[ipmt] = new TH1D(Form("LifeSim%i",ipmt),Form(" real pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
           hLifeSim[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
 
+          hLifeTrue[ipmt] = new TH1D(Form("LifeTrue%i",ipmt),Form(" truth lifetime PMT %i ",ipmt),1000,0,maxLife);
+          hLifeTrue[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+          
           hLifeNoise[ipmt] = new TH1D(Form("LifeNoise%i",ipmt),Form(" noise pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
           hLifeNoise[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
 
           hPMTSim[ipmt] = new TH1D(Form("PMTSim%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
+          
           hPMTSimHitMatch[ipmt] = new TH1D(Form("PMTSimHitMatch%i_%s",ipmt,tag.Data()),"",1000,0,100*simHitMatchTime);
         }      
       }
@@ -369,6 +373,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         std::vector<Int_t> hitMatchNumber(pmtHits.size(),-1);
         for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
           hPMTSim[pmtNum]->Fill(startTime[isim]*microSec);
+          hLifeTrue[pmtNum]->Fill(startTime[isim]*microSec);
           //printf(" YYYYY %u %u %f\n",ientry,isim,startTime[isim]*microSec);
           unsigned ihit=0;
           for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
