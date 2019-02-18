@@ -50,9 +50,9 @@ void life(TString tag = "baconRun_run_4000_0_Ev_0_derivative")
     hlife[ih]->Rebin(2);
     // fit
     Double_t binwidth = hlife[ih]->GetBinWidth(1);
-    Int_t lowBin = hlife[ih]->FindBin(.2);
+    Int_t lowBin = hlife[ih]->FindBin(1.5);
     Double_t xlow=hlife[ih]->GetBinLowEdge(lowBin);
-    Int_t highBin = hlife[ih]->FindBin(6.0);
+    Int_t highBin = hlife[ih]->FindBin(7.0);
     Double_t xhigh=hlife[ih]->GetBinLowEdge(highBin);
     Double_t integral = hlife[ih]->Integral();
     printf(" %s nbins %i lowbin %i xlow %E xhigh %E integral %E width %E \n",

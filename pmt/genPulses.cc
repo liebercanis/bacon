@@ -24,15 +24,15 @@ class PulseFunction {
 genPulses::genPulses(Int_t maxEvents)
 {
   Double_t tau3 = 1.0E-6; // triplet lifetime
-  Double_t eventTime = 4.0E-6;
+  Double_t eventTime = 10.0E-6;
   Int_t nEvents = maxEvents;
+  Double_t meanPhotons=10.0;
   TDatime time;
   rand.SetSeed(time.GetTime());
   Double_t gaussMean = 0,gaussSigma = .0009;
-  Int_t Nphotons = 10;
   TString outFileName = TString("rootData/simEvents_")+TString(to_string(time.GetDate()))+Form("_%i",nEvents)+TString(".root");
   TFile *outFile = new TFile(outFileName,"recreate");
-  printf(" opening output file %s npulses %i gaussMean %f gaussSigma %f\n",outFileName.Data(),Nphotons,gaussMean,gaussSigma);
+  printf(" opening output file %s npulses %f gaussMean %f gaussSigma %f\n",outFileName.Data(),meanPhotons,gaussMean,gaussSigma);
 
   
   // setup output tree  
@@ -60,7 +60,7 @@ genPulses::genPulses(Int_t maxEvents)
   //fPulse->Draw("lp");
   outFile->Append(fPulse);
 
-  startTime = 0,stopTime = 4e-6,shiftTime = 300e-9;
+  startTime = 0,stopTime = 10e-6,shiftTime = 1e-6;
  
   //scint function
   fScintDist = new TF1("scintDist","expo(0)+expo(2)",startTime,stopTime);
@@ -97,25 +97,24 @@ genPulses::genPulses(Int_t maxEvents)
   hTest = new TH1D("test","test",1000,startTime*1E6,stopTime*1E6);
   hTestq = new TH1D("testq","testq",1000,startTime*1E6,stopTime*1E6);
   Int_t nbins = 10000;//0000;
-  hSignal = new TH1D("signal","signal",nbins,0,4e-6);
-  hTime = new TH1D("time","pulse time",nbins,0,4e-6);
-  hWave = new TH1D("wave","wave",nbins,0,4e-6);
+  hSignal = new TH1D("signal","signal",nbins,0,stopTime);
+  hTime = new TH1D("time","pulse time",nbins,0,stopTime);
+  hWave = new TH1D("wave","wave",nbins,0,stopTime);
   hNoise = new TH1D("noise","noise",1000,-10*gaussSigma,10*gaussSigma);
 
   
 
-  
   // loop over events
   for(int k = 0; k < nEvents; k++){
 
     if(k%100==0) printf("... event %i\n",k);
     
     //generate pulse start times
-    std::vector<Double_t> pulseTimes = PulseStartTime(k,Nphotons,tau3);
+    std::vector<Double_t> pulseTimes = PulseStartTime(k,meanPhotons,tau3);
     std::vector<Double_t> sig,time;
-    
+
     pmtSimulation->startTime = pulseTimes;
-    pmtSimulation->Nphotons = Nphotons;
+    pmtSimulation->Nphotons = Int_t(pulseTimes.size());
     pmtSimulation->sigma = s;
     pmtSimulation->tau1 = t1;
     pmtSimulation->tau2 = t2;
@@ -177,12 +176,14 @@ genPulses::genPulses(Int_t maxEvents)
   cout<<"end of genPulses "<<outFileName<<" events " << simTree->GetEntries() << endl;
 }
 
-std::vector<Double_t> genPulses::PulseStartTime(Int_t event, Int_t nPhotons, Double_t tau3)
+std::vector<Double_t> genPulses::PulseStartTime(Int_t event, Double_t meanPhotons, Double_t tau3)
 {
   std::vector<Double_t> pulseTimes;
 
   //TH1D * hTestEv = (TH1D*) hTest->Clone(Form("test-Ev%i",event));
   Int_t counter = 0,failCounter = 0;
+
+  Int_t nPhotons = rand.Poisson(meanPhotons);
 
   while(counter < nPhotons){
     failCounter++;
