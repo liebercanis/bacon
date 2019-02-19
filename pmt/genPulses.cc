@@ -172,7 +172,7 @@ genPulses::genPulses(Int_t maxEvents)
     pmtEvent->time = time;
     simTree->Fill();
     pmtSimulation->clear();
-    if(!(k%100==0)) {
+    if(k>100) {
       delete hSignal1;
       delete hWave1;
     }
