@@ -19,6 +19,7 @@ void TPmtHit::clear()
   peakMaxTime=0;
   peakBin=0;
   qsum=0;
+  good=false;
   kind=-1; // unassigned
 }
 

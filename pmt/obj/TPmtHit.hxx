@@ -34,9 +34,10 @@ class TPmtHit: public TNamed {
     Double_t peakMaxTime;
     Int_t peakBin;
     Double_t qsum;
+    Bool_t good;
     Int_t kind;
 
-    ClassDef(TPmtHit,5)
+    ClassDef(TPmtHit,6)
 };
 #endif
 
