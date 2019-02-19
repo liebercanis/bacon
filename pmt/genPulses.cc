@@ -121,7 +121,6 @@ genPulses::genPulses(Int_t maxEvents)
     std::vector<Double_t> pulseTimes = PulseStartTime(k,meanPhotons,tau3);
     std::vector<Double_t> sig,time;
 
-    pmtSimulation->startTime = pulseTimes;
     pmtSimulation->Nphotons = Int_t(pulseTimes.size());
     pmtSimulation->sigma = s;
     pmtSimulation->tau1 = t1;
@@ -146,6 +145,7 @@ genPulses::genPulses(Int_t maxEvents)
         hWave1->SetBinContent(jbin,hSignal1->GetBinContent(jbin)+qbin);
         sumq += qbin;
       }
+      pmtSimulation->startTime.push_back(pulseTimes[i]+mean);
       pmtSimulation->q.push_back(sumq);
       Int_t ibin = hTestq->FindBin(time);
       hTestq->SetBinContent( ibin , hTestq->GetBinContent(ibin)+sumq);
