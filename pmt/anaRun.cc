@@ -157,7 +157,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       source = new Double_t[nSamples];
       Double_t maxLife = pmtEvent->time[nSamples-1]*microSec;
       timeUnit=pmtEvent->time[1]-pmtEvent->time[0];
-      simHitMatchTime=3.0*timeUnit;
+      simHitMatchTime=4.0*timeUnit;
       printf(" \n\n ***** setting time unit %E maxLife %f \n",timeUnit,maxLife);
       if(isSimulation) printf(" \n\n ***** setting matching time  %E \n",simHitMatchTime);
       Double_t pmtXLow= pmtEvent->time[0]*microSec;
