@@ -15,7 +15,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   microSec=1.0E6;
   ran = new TRandom3();
   Double_t simHitMatchTime=0;
-  Double_t simHitMatchOffset=0.1E-6;
+  Double_t simHitMatchOffset=0;
   Double_t sigma=0;
   fsigma=sigma;
   if(sigma==0) fsigma=5;
@@ -37,6 +37,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
 
    
   //ntBase = new TNtuple("ntBase","base","iw:w:b:bnon:bneil:width");
+  TNtuple *ntMatchTime = new TNtuple("ntMatchTime"," match time ","ihit:dt");
   ntCal =  new TNtuple("ntCal","ntuple Cal","iev:ipmt:base:sigma:dbase:dsigma");
   ntHit =  new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax:match:kind");
   ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax:kind");
@@ -387,6 +388,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
               hitMatch[ihit] = phiti.peakt*timeUnit-startTime[isim]-simHitMatchOffset;
               hitMatchNumber[ihit]=isim;
             }
+            ntMatchTime->Fill(ihit, phiti.peakt*timeUnit-startTime[isim]);
             ++ihit;
           }
         }
