@@ -1,6 +1,6 @@
 using namespace TMath;
 enum {NPMT=2};
-enum {NHIST=5};
+enum {NHIST=6};
 static  double qmax = 0.5;
 static double qmin = 0.0;
 static Int_t nbins = 500;
@@ -38,6 +38,8 @@ void life(TString tag = "baconRun_run_4000_0_Ev_0_derivative")
   htag[2]=TString("LifeCount0");
   htag[3]=TString("LifeSim0");
   htag[4]=TString("LifeNoise0");
+  htag[5]=TString("LifeTrue0");
+
  
   Double_t tguess;
   for(int ih=0; ih<NHIST; ++ih) {
@@ -58,7 +60,7 @@ void life(TString tag = "baconRun_run_4000_0_Ev_0_derivative")
     hlife[ih]->Rebin(2);
     // fit
     Double_t binwidth = hlife[ih]->GetBinWidth(1);
-    Int_t lowBin = hlife[ih]->FindBin(1.5);
+    Int_t lowBin = hlife[ih]->FindBin(1.2);
     //if(ih==3) lowBin = hlife[ih]->FindBin(1);
     Double_t xlow=hlife[ih]->GetBinLowEdge(lowBin);
     Int_t highBin = hlife[ih]->FindBin(7.0);

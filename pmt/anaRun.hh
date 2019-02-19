@@ -126,7 +126,6 @@ public :
   TH1D* hNegNHits[NPMT];
   TH1D* hPMTRaw[NPMT];
   TH1D* hPMTSim[NPMT];
-  TH1D* hPMTSimHitMatch[NPMT];
   TH1D* hPMTSignal[NPMT];
   TH1D* hPMTDerivative[NPMT];
   TH1D* hSum[NPMT];
@@ -168,6 +167,9 @@ public :
   TH1D* hLatePulse;
   TH1D* hPromptPulse;
   TH1D* hLateNoisePulse;
+  TH1D* hMatchTime;
+  TH1D* hIsSimHitMatch;
+  TH1D* hNotSimHitMatch;
 
 };
 

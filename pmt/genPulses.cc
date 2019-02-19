@@ -58,13 +58,16 @@ genPulses::genPulses(Int_t maxEvents)
   fPulse->SetParName(3,"ratio12");
   fPulse->SetParName(4,"mean");
   fPulse->SetParName(5,"amplitude");
-  fPulse->Print();
   //TCanvas *cbackground = new TCanvas("pulse-shape","pulse-shape");
   //fPulse->Draw("lp");
   outFile->Append(fPulse);
 
   //BoxMuller transform
   TH1D* hPulse = (TH1D*) fPulse->GetHistogram();
+
+  fPulse->Print();
+  Double_t qnorm = hPulse->Integral();
+  printf(" PulseFunction normalization is %f \n",qnorm);
 
 
   //scint function
@@ -107,7 +110,7 @@ genPulses::genPulses(Int_t maxEvents)
   hTime = new TH1D("Time","pulse time",nbins,0,stopTime);
   hNoise = new TH1D("Noise","noise",1000,-10*gaussSigma,10*gaussSigma);
 
-  
+  TH1D* hCharge = new TH1D("Charge","charge",1000,-2,8);
 
   // loop over events
   for(int k = 0; k < nEvents; k++){
@@ -146,6 +149,7 @@ genPulses::genPulses(Int_t maxEvents)
       pmtSimulation->q.push_back(sumq);
       Int_t ibin = hTestq->FindBin(time);
       hTestq->SetBinContent( ibin , hTestq->GetBinContent(ibin)+sumq);
+      hCharge->Fill(sumq/qnorm);
     }
 
     // set baseline sagging 
@@ -159,8 +163,9 @@ genPulses::genPulses(Int_t maxEvents)
       Double_t noise = gaussMean+gaussSigma*sqrt(-2.0*log(rand.Rndm()))*cos(2*TMath::Pi()*rand.Rndm()) ;
       hNoise->Fill(noise);
       hWave1->SetBinContent(i+1,noise+hWave1->GetBinContent(i+1)+fBaseSag->Eval(hWave1->GetBinCenter(i+1)));
+      //hWave1->SetBinContent(i+1,noise+hWave1->GetBinContent(i+1));
       // make vectors for event
-      sig.push_back(-noise-hWave1->GetBinContent(i+1));
+      sig.push_back(-hWave1->GetBinContent(i+1));
       time.push_back(hWave1->GetBinCenter(i+1));
     }
     pmtEvent->volt1 = sig;
