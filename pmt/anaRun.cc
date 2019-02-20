@@ -11,7 +11,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   Int_t nMaxPulseHist=100;
   Int_t pulseHistCount=0;
   firstChargeCut=0.1;
-  lifeChargeCut=0.04;
+  lifeChargeCut=0.025;
   microSec=1.0E6;
   ran = new TRandom3();
   Double_t simHitMatchTime=0.01E-6;
