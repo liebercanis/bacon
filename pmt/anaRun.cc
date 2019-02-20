@@ -24,7 +24,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   aveWidth=20;
   spec = new TSpectrum();
   //Int_t irunStop = irunStart;
-  TString outFileName ; outFileName.Form("%s_Ev_%i_derivative_%.2f.root",tag.Data(),maxEvents,derivativeCut);
+  TString outFileName ; outFileName.Form("%s_Ev_%i_derivative_%.2f.root",tag.Data(),maxEvents,derivativeSigma);
   TFile *outfile = new TFile(outFileName,"recreate");
   outfile->mkdir("pulses");
   hLatePulse = new TH1D("LatePulse","late pulse",2*PWIDTH,0,2*PWIDTH);
