@@ -14,8 +14,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   lifeChargeCut=0.04;
   microSec=1.0E6;
   ran = new TRandom3();
-  Double_t simHitMatchTime=0;
-  Double_t simHitMatchOffset=0;
+  Double_t simHitMatchTime=0.01E-6;
   Double_t sigma=0;
   fsigma=sigma;
   if(sigma==0) fsigma=5;
@@ -39,11 +38,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   //ntBase = new TNtuple("ntBase","base","iw:w:b:bnon:bneil:width");
   TNtuple *ntMatchTime = new TNtuple("ntMatchTime"," match time ","ihit:dt");
   ntCal =  new TNtuple("ntCal","ntuple Cal","iev:ipmt:base:sigma:dbase:dsigma");
-  ntHit =  new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax:match:kind");
-  ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:tstart:q:nwidth:qmax:kind");
+  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:q:nwidth:peak:good:kind");
+  ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:q:nwidth:peak:good:kind");
   ntDer =  new TNtuple("ntDer"," deriviative ","t:sigma:d0:kover:type");
   ntEvent= new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:qp0:qp1:q00:q01:q10:q11:qsum0:qsum1");
-  ntPulse= new TNtuple("ntPulse"," pulse ","sum:shigh:slow:nsamp:kover:qlow:qhigh:klow:khigh");
+  ntPulse= new TNtuple("ntPulse"," pulse ","sum:shigh:slow:nsamp:kover:qlow:qhigggh:klow:khigh");
   ntWave = new TNtuple("ntWave"," wave ","event:v:d");
 
   hPeakNWidth = new TH1I("PeakNWidth","PeakNWidth",100,0,100);
@@ -158,16 +157,15 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       source = new Double_t[nSamples];
       Double_t maxLife = pmtEvent->time[nSamples-1]*microSec;
       timeUnit=pmtEvent->time[1]-pmtEvent->time[0];
-      simHitMatchTime=4.0*timeUnit;
       printf(" \n\n ***** setting time unit %E maxLife %f \n",timeUnit,maxLife);
       if(isSimulation) printf(" \n\n ***** setting matching time  %E \n",simHitMatchTime);
       Double_t pmtXLow= pmtEvent->time[0]*microSec;
       Double_t pmtXHigh= pmtEvent->time[nSamples-1]*microSec;
       if(isSimulation) {
-        hMatchTime = new TH1D("hitMatchTime","hit match time ",1000,-10*simHitMatchTime,10*simHitMatchTime);
-        hIsSimHitMatch = new TH1D("IsSimHitMatch","",1000,-10*simHitMatchTime,10*simHitMatchTime);
-        hNotSimHitMatch = new TH1D("NotSimHitMatch","",1000,-10*simHitMatchTime,10*simHitMatchTime);
+        hIsSimHitMatchTime = new TH1D("IsSimHitMatch","",1000,-10*simHitMatchTime,10*simHitMatchTime);
+        hAllSimHitMatchTime = new TH1D("AllSimHitMatch","",1000,-10*simHitMatchTime,10*simHitMatchTime);
         hSimHitMatched = new TH1D("SimHitMatched","",nSamples,pmtXLow,pmtXHigh);
+        hSimHitNotMatched = new TH1D("SimHitNotMatched","",nSamples,pmtXLow,pmtXHigh);
         hSimHitMissed = new TH1D("SimHitMissed","",nSamples,pmtXLow,pmtXHigh);
         ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match:nnot:nmiss");
       }
@@ -210,7 +208,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
           hLifeNoise[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
 
           hPMTSim[ipmt] = new TH1D(Form("PMTSim%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
-          
         }      
       }
       // initialize fft 
@@ -369,64 +366,55 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
             ientry,pmtNum,nhits,phit0.qsum,phit0.startTime*microSec,firstTime,firstCharge);
 
    
-      // compare hits and simulation 
-      std::vector<bool> isMatch(pmtHits.size(),false);
+      /* ******compare hits and simulation*******
+      */
       if(isSimulation) {
-        std::vector<Double_t> startTime=pmtSimulation->startTime;
-        // vector to hold best matches
-        std::vector<Double_t> hitMatch(pmtHits.size(),100.);
-        std::vector<Int_t> hitMatchNumber(pmtHits.size(),-1);
-        for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
-          hPMTSim[pmtNum]->Fill(startTime[isim]*microSec);
-          hLifeTrue[pmtNum]->Fill(startTime[isim]*microSec);
-          //printf(" YYYYY %u %u %f\n",ientry,isim,startTime[isim]*microSec);
-          unsigned ihit=0;
-          for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
-            TPmtHit phiti = hitIter->second;
-            if(abs(phiti.peakt*timeUnit-startTime[isim])<hitMatch[ihit]) {
-              hMatchTime->Fill(phiti.peakt*timeUnit-startTime[isim]-simHitMatchOffset);
-              hitMatch[ihit] = phiti.peakt*timeUnit-startTime[isim]-simHitMatchOffset;
-              hitMatchNumber[ihit]=isim;
-            }
-            ntMatchTime->Fill(ihit, phiti.peakt*timeUnit-startTime[isim]);
-            ++ihit;
-          }
-        }
-        unsigned nmatch=0;
         unsigned nnot=0;
-        for(unsigned ihit=0; ihit<hitMatch.size(); ++ihit) {
-          if(abs(hitMatch[ihit])<simHitMatchTime) {
-            ++nmatch;
-            hIsSimHitMatch->Fill(hitMatch[ihit]);
-            isMatch[ihit]=true;
-          } else { 
+        std::vector<Double_t> startTime=pmtSimulation->startTime;
+        std::vector<Int_t> hitMatchNumber(pmtHits.size(),-1);       
+        // loop over hits
+        unsigned ihit=0;
+        for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
+          TPmtHit phiti = hitIter->second;
+          // loop over sim 
+          for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
+            Double_t tdiff =  phiti.peakt*timeUnit-startTime[isim];
+            hAllSimHitMatchTime->Fill(tdiff);
+            ntMatchTime->Fill(ihit,tdiff);
+            hPMTSim[pmtNum]->Fill(startTime[isim]*microSec);
+            hLifeTrue[pmtNum]->Fill(startTime[isim]*microSec);
+            if(abs(tdiff)<simHitMatchTime) {
+              ++hitIter->second.good;
+              hitMatchNumber[ihit]=isim;
+              hIsSimHitMatchTime->Fill(tdiff);
+            }
+          }
+          // count not matched (noise hits)
+          if( hitIter->second.good==0) {
             ++nnot;
-            hNotSimHitMatch->Fill(hitMatch[ihit]);
+            hSimHitNotMatched->Fill(phiti.peakt*timeUnit*microSec);
           }
-          //printf(" %u (%E) %E number %i nmatch %i nnot %i \n",ihit, simHitMatchTime,hitMatch[ihit],hitMatchNumber[ihit], nmatch,nnot );
+          ++ihit;
         }
-
-        // count missed
+        // count matches
+        unsigned nmatch=0;
         unsigned nmiss=0;
-        for(unsigned isim = 0 ; isim < startTime.size(); ++ isim ) {
-          bool matched=false;
-          for(unsigned ihit=0; ihit< hitMatchNumber.size(); ++ihit) if(int(isim)==hitMatchNumber[ihit]) {
+        for(unsigned isim; isim<startTime.size(); ++isim) {
+          bool isMatched=false;
+          for(unsigned ihit=0; ihit<hitMatchNumber.size(); ++ihit) if( hitMatchNumber[ihit]==isim ) isMatched=true;
+          if(isMatched){
+            ++nmatch;
             hSimHitMatched->Fill(startTime[isim]*microSec);
-            matched=true;
-          }
-          if(!matched) {
-            hSimHitMissed->Fill(startTime[isim]*microSec);
-            //printf(" \t\t >>>>>> missed event %u hit %u of %lu time %f (microsec) \n",ientry, isim, startTime.size(), startTime[isim]*microSec);
+          } else {
             ++nmiss;
+            hSimHitMissed->Fill(startTime[isim]*microSec);
           }
         }
-
+       
         ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch),float(nnot),float(nmiss));
         if(pmtNum==0) simMatchStats->fill(startTime.size(),pmtHits.size(),nmatch,nnot,nmiss);
-        //printf(" %i PMT%i ngen %zu  nhits %lu nmatches %u  not %u \n",ientry,pmtNum,startTime.size(),pmtHits.size(),nmatch,nnot);
-        //if(ientry%printInterval==0) simMatchStats->print();
         if(ientry%printInterval==0) simMatchStats->print();
-      }
+      } // end is sim
 
       if(nHists<nMaxHistEvents&&nhits>9) {
         plotWave(ientry,pmtNum,pmtHits );
@@ -437,12 +425,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       int hitCount=0;
       for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
         TPmtHit phiti = hitIter->second;
+        printf(" update %i \n",phiti.good);
         Double_t phitTime =  phiti.startTime*microSec-firstTime; 
         hQStart->Fill(phitTime,phiti.qsum);
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
         Int_t istartBin =  hLife[pmtNum]->FindBin(phitTime); 
         qsum[pmtNum] += phiti.qsum;
-        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec, phitTime,phiti.qsum,nwidth,phiti.qpeak,float(isMatch[hitCount]),phiti.kind);
+        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phiti.qsum,nwidth,phiti.qpeak,phiti.good,phiti.kind);
         hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
         if(phiti.qsum>lifeChargeCut) {
           hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
@@ -450,7 +439,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         }
 
         if(isSimulation) {
-          if( isMatch[hitCount] ) hLifeSim[pmtNum]->SetBinContent( istartBin, hLifeSim[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+          if( phiti.good>0 ) hLifeSim[pmtNum]->SetBinContent( istartBin, hLifeSim[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
           else hLifeNoise[pmtNum]->SetBinContent( istartBin, hLifeNoise[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
         }
 
@@ -465,7 +454,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         if(phitTime>2.0) {
           for(unsigned ibin=0; ibin<pulsei.size(); ++ibin ) {
             if(isSimulation) {
-              if( isMatch[hitCount] ) hLatePulse->SetBinContent( ibin, hLatePulse->GetBinContent(ibin)+pulsei[ibin]) ;
+              if( phiti.good>0 ) hLatePulse->SetBinContent( ibin, hLatePulse->GetBinContent(ibin)+pulsei[ibin]) ;
               else hLateNoisePulse->SetBinContent( ibin, hLateNoisePulse->GetBinContent(ibin)+pulsei[ibin]) ;
             } else 
               hLatePulse->SetBinContent( ibin, hLatePulse->GetBinContent(ibin)+pulsei[ibin]) ;
@@ -492,15 +481,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         Double_t phitTime =  phiti.startTime*microSec-nfirstTime;
         hNegQStart->Fill(phitTime,phiti.qsum);
         Int_t istartBin =  hNLife[pmtNum]->FindBin(phitTime);
-        ntNHit->Fill(pmtNum,nhits,hitCount++,istartBin, phiti.startTime*microSec,phitTime,phiti.qsum,nwidth,phiti.qpeak,phiti.kind);
+        ntNHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phiti.qsum,nwidth,phiti.qpeak,phiti.good,phiti.kind);
         hNLife[pmtNum]->SetBinContent( istartBin, hNLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
         if(phiti.qsum>lifeChargeCut) hNLifeCut[pmtNum]->SetBinContent( istartBin, hNLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
       }
       if(nfirstTime==1E9&&nphit0.qsum>firstChargeCut) 
         printf(" WARNING NO NEGATIVE FIRST PULSE event %i  pmt %i pulses %i qhit %f time %f first %f charge %f \n",
             ientry,pmtNum,negnhits,nphit0.qsum,nphit0.startTime*microSec,nfirstTime,nfirstCharge);
-
-
 
       // save for npmtHit ntuple
       qpmt[pmtNum][0]=phit0.qsum;
@@ -522,11 +509,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         }
       }
       if(nped[pmtNum]>0) qped[pmtNum] /= Double_t(aveWidth*nped[pmtNum]);
-
-      // add noise hit
-      // Int_t nwidth0 = phit0.lastBin - phit0.firstBin +1;
-      // ntHit->Fill(pmtNum,nhits,hitCount++,0,qped[pmtNum],0,nwidth0,qped[pmtNum]/Double_t(nwidth0));
-      //ntHit->Fill(pmtNum,nhits,hitCount++,0,qped[pmtNum],0,nwidth0,sDev[pmtNum]*Double_t(aveWidth));
 
     }
 

@@ -163,13 +163,13 @@ public :
   TH2D* hNegQStart;
   TH2D* hQFirst;
   TH1D* hSimHitMatched;
+  TH1D* hSimHitNotMatched;
   TH1D* hSimHitMissed;
   TH1D* hLatePulse;
   TH1D* hPromptPulse;
   TH1D* hLateNoisePulse;
-  TH1D* hMatchTime;
-  TH1D* hIsSimHitMatch;
-  TH1D* hNotSimHitMatch;
+  TH1D* hIsSimHitMatchTime;
+  TH1D* hAllSimHitMatchTime;
 
 };
 
