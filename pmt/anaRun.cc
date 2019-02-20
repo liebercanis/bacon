@@ -18,13 +18,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   Double_t sigma=0;
   fsigma=sigma;
   if(sigma==0) fsigma=5;
-  derivativeSigma=3.0;
+  derivativeSigma=3.5;
   windowSize=15;
   nSigma=5;
   aveWidth=20;
   spec = new TSpectrum();
   //Int_t irunStop = irunStart;
-  TString outFileName ; outFileName.Form("%s_Ev_%i_derivative.root",tag.Data(),maxEvents);
+  TString outFileName ; outFileName.Form("%s_Ev_%i_derivative_%.2f.root",tag.Data(),maxEvents,derivativeCut);
   TFile *outfile = new TFile(outFileName,"recreate");
   outfile->mkdir("pulses");
   hLatePulse = new TH1D("LatePulse","late pulse",2*PWIDTH,0,2*PWIDTH);
@@ -415,7 +415,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch),float(nnot),float(nmiss));
         if(pmtNum==0) simMatchStats->fill(startTime.size(),pmtHits.size(),nmatch,nnot,nmiss);
         if(ientry%printInterval==0) simMatchStats->print();
-        simMatchStats->print();
+        //simMatchStats->print();
       } // end is sim
 
       if(nHists<nMaxHistEvents&&nhits>9) {
@@ -524,7 +524,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   printf(" total hits PMT1 %i PMT2 %i out of %lld events events with no peaks %u \n",totalHits[0],totalHits[1],nentries,noPeakEventCount);
         
   printf(" derivative sigma is %.2f \n",derivativeSigma);
-  simMatchStats->print();
+  if(isSimulation) simMatchStats->print();
 
   outfile->Purge();
   outfile->Write();
