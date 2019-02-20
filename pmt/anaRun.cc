@@ -18,6 +18,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   Double_t sigma=0;
   fsigma=sigma;
   if(sigma==0) fsigma=5;
+  derivativeSigma=3.0;
   windowSize=15;
   nSigma=5;
   aveWidth=20;
@@ -414,6 +415,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         ntSimMatch->Fill(float(pmtNum),float(startTime.size()),float(pmtHits.size()),float(nmatch),float(nnot),float(nmiss));
         if(pmtNum==0) simMatchStats->fill(startTime.size(),pmtHits.size(),nmatch,nnot,nmiss);
         if(ientry%printInterval==0) simMatchStats->print();
+        simMatchStats->print();
       } // end is sim
 
       if(nHists<nMaxHistEvents&&nhits>9) {
@@ -520,6 +522,9 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       if(ientry%printInterval==0) printf(" total hits PMT1 %i PMT2 %i out of %u events events with no peaks %u \n",totalHits[0],totalHits[1],ientry,noPeakEventCount);
   }
   printf(" total hits PMT1 %i PMT2 %i out of %lld events events with no peaks %u \n",totalHits[0],totalHits[1],nentries,noPeakEventCount);
+        
+  printf(" derivative sigma is %.2f \n",derivativeSigma);
+  simMatchStats->print();
 
   outfile->Purge();
   outfile->Write();
@@ -901,8 +906,8 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
   std::vector<double> crossingTime;
 
   unsigned vsize = v.size();
-  Double_t cut = 3.5*rms;
-  Double_t ncut = -3.5*rms;
+  Double_t cut = derivativeSigma*rms;
+  Double_t ncut = -derivativeSigma*rms;
   // find all crossings
   for( unsigned ibin=1; ibin< vsize; ++ibin ) {
     Double_t u = double(ibin)*timeUnit*microSec;

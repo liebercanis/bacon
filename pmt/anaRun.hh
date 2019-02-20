@@ -51,6 +51,7 @@ public :
   enum {baseLineHalfWindow = 200}; // even integer
   double fsigma;
   double timeUnit;
+  double derivativeSigma;
   double microSec;
   bool isSimulation;
   Int_t nSigma;
