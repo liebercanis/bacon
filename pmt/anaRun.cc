@@ -399,7 +399,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         // count matches
         unsigned nmatch=0;
         unsigned nmiss=0;
-        for(unsigned isim; isim<startTime.size(); ++isim) {
+        for(unsigned isim=0; isim<startTime.size(); ++isim) {
           bool isMatched=false;
           for(unsigned ihit=0; ihit<hitMatchNumber.size(); ++ihit) if( hitMatchNumber[ihit]==isim ) isMatched=true;
           if(isMatched){
