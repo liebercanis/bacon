@@ -425,7 +425,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       int hitCount=0;
       for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
         TPmtHit phiti = hitIter->second;
-        printf(" update %i \n",phiti.good);
         Double_t phitTime =  phiti.startTime*microSec-firstTime; 
         hQStart->Fill(phitTime,phiti.qsum);
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
