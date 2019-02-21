@@ -77,7 +77,8 @@ public :
   Double_t lifeChargeCut;
 
   //
-  peakType  derivativePeaks(std::vector<Double_t> v,  Int_t nwindow, Double_t rms, std::vector<Int_t>& peakKind); 
+  peakType  derivativePeaks(std::vector<Double_t> v,  Int_t nwindow, Double_t rms, std::vector<Int_t>& peakKind);
+  void trimPeaks(peakType& peakList, std::vector<Double_t> sv);
   hitMap makeHits( peakType peakList, std::vector<Int_t> peakKind, std::vector<Double_t> ddigi,Double_t sigma, Double_t& firstTime, Double_t& firstCharge);
   std::vector<Double_t> SimpleFilter(std::vector<Double_t> in);
   std::vector<Double_t> SimpleLowPassFilter(std::vector<Double_t> in, Double_t a);

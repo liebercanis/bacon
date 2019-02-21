@@ -305,6 +305,10 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hPMTSignal[pmtNum]->SetBinContent(i,(ddigi[pmtNum][i]-baselineDigi[pmtNum][i]));
       }
 
+      // trim peaks
+      trimPeaks(peakList,sddigi[pmtNum]);
+      trimPeaks(npeakList,sndigi[pmtNum]);
+
       Double_t minDev = 0*sDev[pmtNum];
       Double_t maxDev = fsigma*sDev[pmtNum];
       Double_t firstTime, firstCharge;
@@ -542,9 +546,11 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
   if(peakList.size()<1) return pmtHits;
   Double_t qmax=0;
  
+  unsigned minLength=5;
   for(unsigned ip=0; ip<peakList.size(); ++ip) {
     unsigned klow  = std::get<0>(peakList[ip]);
     unsigned khigh = std::get<1>(peakList[ip]);
+    if( khigh-klow<minLength) continue;
     Double_t qhit=0;
     UInt_t peakt=0;
     Double_t qpeak=0;
@@ -995,6 +1001,7 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
   //printf("peaks with twos %zu  \n",peakList.size());
  
   // extend pulses to zero derivative
+  /*
   for(unsigned ip=0; ip<peakList.size(); ++ip)  {
     // high direction
     unsigned high = std::get<1>(peakList[ip]);
@@ -1014,9 +1021,44 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
       if( v[kp] >0 && v[kp-1]<0 ) break;
     }
   }
+  */
+
 // return list
   return peakList;
 }
+void anaRun::trimPeaks(peakType& peakList, std::vector<Double_t> sv)
+{
+
+  unsigned svsize=sv.size();
+  for(unsigned ip=0; ip<peakList.size(); ++ip)  {
+    // high direction
+    unsigned low = std::get<0>(peakList[ip]);
+    unsigned high = std::get<1>(peakList[ip]);
+    Double_t vmax=-9999;
+    unsigned kmax=0;
+    for(unsigned kp=low; kp<=high; ++kp) {
+      if(sv[kp]>vmax) {
+        vmax=sv[kp];
+        kmax=kp;
+      }
+    }
+    for(unsigned kp= kmax; kp <= high ; ++kp ) {
+      std::get<1>(peakList[ip])=kp;
+      if(kp==svsize) break;
+      if(sv[kp+1]<0) break;
+    }
+    // low direction
+    for(unsigned kp= kmax; kp >= low ; --kp ) {
+      std::get<0>(peakList[ip])=kp;
+      if(kp==0) break;
+      if( sv[kp-1]<0) break;
+    }
+  }
+}
+
+
+
+
 //Weighted Moving Average baseline from Zugec et al 
 std::vector<Double_t> anaRun::getBaselineWMARecursive(Double_t ave, std::vector<Double_t> sig, std::vector<Double_t> weight,Int_t NWindow)
 {
