@@ -14,8 +14,7 @@ void hlist() {
     obj = key->ReadObj() ;
     if (!obj->InheritsFrom("TH1D")) continue;
     TString hname(obj->GetName());
-    if(hname.Contains("Peaks")) continue;
-    cout << hname << endl;
+    if(hname.Contains("RawEv")) cout << hname << endl;
   }
 }
 
@@ -81,6 +80,7 @@ void plot1(Int_t ievent) {
   hist->Draw();
   phist->Draw("same");
   if(shist) shist->Draw("same");
+  //if(shist) shist->Print("all");
   can->Print(".png");
 }
 
@@ -124,9 +124,10 @@ void plotb(Int_t ievent) {
   hist->SetFillColor(kBlue);
   hist->SetFillStyle(0);
   
-  phist->SetLineColor(kYellow);
-  phist->SetFillColor(kYellow);
-  phist->SetFillStyle(3003);
+  phist->SetLineColor(kGreen);
+  phist->SetFillColor(kGreen);
+  phist->SetFillStyle(0);
+
 
   TString canName;
   canName.Form("%s-Raw-Event%i",tag.Data(),ievent);
@@ -144,6 +145,7 @@ void plotd(Int_t ievent) {
   TH1D* hist=NULL;
   TH1D* phist=NULL;
   TH1D* dhist=NULL;
+  TH1D* nhist=NULL;
 
   if (!fin->IsOpen()) return;
 
@@ -153,13 +155,17 @@ void plotd(Int_t ievent) {
   dsearch.Form("DerEv%i_PMT_0",ievent);
   TString psearch;
   psearch.Form("PeaksEv%i_PMT_0",ievent);
+
+  TString nsearch;
+  nsearch.Form("NoiseEv%i_PMT_0",ievent);
+
   
   TH1D* shist=NULL;
   TString ssearch;
   ssearch.Form("SimHitsEv%i_PMT_0",ievent);
 
   
-  printf(" looking for %s %s %s \n",search.Data(),dsearch.Data(),psearch.Data());
+  printf(" looking for %s %s %s %s %s \n",search.Data(),dsearch.Data(),psearch.Data(),ssearch.Data(),nsearch.Data());
 
   
   TList* list = fin->GetListOfKeys() ;
@@ -176,6 +182,7 @@ void plotd(Int_t ievent) {
     if( hname.Contains(psearch)) phist = (TH1D*) obj;
     if( hname.Contains(dsearch)) dhist = (TH1D*) obj;
     if( hname.Contains(ssearch)) shist = (TH1D*) obj;
+    if( hname.Contains(nsearch)) nhist = (TH1D*) obj;
   }
 
   if(!(hist&&phist)) { 
@@ -196,7 +203,9 @@ void plotd(Int_t ievent) {
   phist->SetLineColor(kRed);
   phist->SetFillColor(kRed);
   phist->SetFillStyle(3002);
+
   if(shist) {
+    printf("found %s   \n",shist->GetName() );
     shist->SetLineColor(kGreen);
     shist->SetFillColor(kGreen);
     shist->SetFillStyle(0);
@@ -212,6 +221,7 @@ void plotd(Int_t ievent) {
   can->cd(2); dhist->Draw();
   can->cd(3); {
     phist->Draw();
+    //nhist->Draw("same");
     if(shist) shist->Draw("same");
   }
   can->Print(".png");
@@ -244,18 +254,16 @@ void plotAll(int Max=0) {
 }
 
 
-void plotEv(TString theTag = "run_4_0_Ev_10_derivative", Int_t ievent=0) 
+void plotEv(TString theTag = "baconRun_run_1015_0_Ev_0_derivative", Int_t ievent=0) 
 {
   tag = theTag;
   TString fileName;
-  //fileName.Form("baconRunAna_%s.root",tag.Data());
-
-  
-  fin = TFile::Open(theTag);
+  fileName.Form("%s.root",tag.Data());
+  printf("looking for file %s\n",fileName.Data()) ;
+  fin = TFile::Open(fileName);
 
   if(!fin) return;
 
-  printf("looking for file %s\n",fileName.Data()) ;
   if (!fin->IsOpen()) {
     printf("<E> Cannot open input file %s\n",fileName.Data()) ;
     exit(1) ;

@@ -3,6 +3,7 @@
 
 anaRun::anaRun(TString tag, Int_t maxEvents)
 {
+  bool debug=false;
   printf(" starting anaRun tag %s \n",tag.Data());
   int printInterval=100;
   int nHists=0;
@@ -20,6 +21,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   if(sigma==0) fsigma=5;
   derivativeSigma=3.5;
   windowSize=15;
+  //windowSize=2;
   nSigma=5;
   aveWidth=20;
   spec = new TSpectrum();
@@ -376,7 +378,8 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       if(isSimulation) {
         unsigned nnot=0;
         std::vector<Double_t> startTime=pmtSimulation->startTime;
-        std::vector<Int_t> hitMatchNumber(pmtHits.size(),-1);       
+        std::vector<Int_t> hitMatchNumber(pmtHits.size(),-1); 
+        if(debug) printf(" event %u photons %lu hits %lu \n",ientry,startTime.size(),pmtHits.size());
         // loop over hits
         unsigned ihit=0;
         for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
@@ -386,8 +389,10 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
             Double_t tdiff =  phiti.peakt*timeUnit-startTime[isim];
             hAllSimHitMatchTime->Fill(tdiff);
             ntMatchTime->Fill(ihit,tdiff);
-            hPMTSim[pmtNum]->Fill(startTime[isim]*microSec);
-            hLifeTrue[pmtNum]->Fill(startTime[isim]*microSec);
+            if(ihit==0) { // only fill once per event
+              hPMTSim[pmtNum]->Fill(startTime[isim]*microSec);
+              hLifeTrue[pmtNum]->Fill(startTime[isim]*microSec);
+            }
             if(abs(tdiff)<simHitMatchTime) {
               ++hitIter->second.good;
               hitMatchNumber[ihit]=isim;
@@ -429,9 +434,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
 
       // look at hits
       int hitCount=0;
+      if(debug) printf(" event %u \n",ientry);
       for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
         TPmtHit phiti = hitIter->second;
         Double_t phitTime =  phiti.startTime*microSec-firstTime; 
+        if(debug) printf(" hit %i time %f q %f good %i \n  ",hitCount, phiti.startTime*microSec, phiti.qsum/.05,phiti.good);
         hQStart->Fill(phitTime,phiti.qsum);
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
         Int_t istartBin =  hLife[pmtNum]->FindBin(phitTime); 
@@ -468,7 +475,9 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
           for(unsigned ibin=0; ibin<pulsei.size(); ++ibin ) hPromptPulse->SetBinContent( ibin, hPromptPulse->GetBinContent(ibin)+pulsei[ibin]) ;
 
         ++hitCount;
-      }
+      } 
+      if(debug) printf(" ////// \n\n");
+
       // summed wave forms only if passes first charge cut
       if(firstCharge>firstChargeCut) sumWave(pmtNum);
 
@@ -581,10 +590,7 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
       firstTime=phit.startTime*microSec;
       firstCharge = qsum;
     }
-    
-
     Double_t hitTime = phit.startTime*microSec;
-
     pmtHits.insert ( std::pair<Double_t,TPmtHit>(hitTime,phit) );
     hPeakNWidth->Fill(phit.lastBin-phit.firstBin+1);
   }
@@ -598,7 +604,6 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
   firstCharge = phit0.qsum;
   */
   firstTime=0.0;
-
   if(firstCharge<firstChargeCut&&pmtHits.size()>0&&qmax>firstChargeCut) printf("\t WARNING XXXXX NO FIRST PULSE pulses %i max %f \n",int(pmtHits.size()),qmax);
 
   return  pmtHits;

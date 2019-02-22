@@ -23,6 +23,7 @@ class PulseFunction {
 
 genPulses::genPulses(Int_t maxEvents)
 {
+  bool debug=false;
   Double_t tau3 = 1.0E-6; // triplet lifetime
   Double_t eventTime = 10.0E-6;
   Int_t nEvents = maxEvents;
@@ -127,8 +128,6 @@ genPulses::genPulses(Int_t maxEvents)
     pmtSimulation->tau2 = t2;
     pmtSimulation->ratio12 = t12;
     pmtSimulation->event = k;
-
-
     TH1D* hSignal1 = (TH1D*) hSignal->Clone(Form("SignalEv%i",k));
     TH1D* hWave1 = (TH1D*) hWave->Clone(Form("WaveformEv%i",k));
     // loop over pulses
@@ -142,7 +141,7 @@ genPulses::genPulses(Int_t maxEvents)
         double qtime = hPulse->GetBinLowEdge(j);
         Int_t jbin = hSignal1->FindBin(qtime+time);
         hSignal1->SetBinContent(jbin,hSignal1->GetBinContent(jbin)+qbin);
-        hWave1->SetBinContent(jbin,hSignal1->GetBinContent(jbin)+qbin);
+        hWave1->SetBinContent(jbin,hWave1->GetBinContent(jbin)+qbin);
         sumq += qbin;
       }
       pmtSimulation->startTime.push_back(pulseTimes[i]+mean);
@@ -152,6 +151,7 @@ genPulses::genPulses(Int_t maxEvents)
       hCharge->Fill(sumq/qnorm);
     }
 
+    if(debug) printf(" int %i pulses %lu integral %f \n",k,pulseTimes.size(),hSignal1->Integral()/.05);
     // set baseline sagging 
     //if(-hSignal1->GetMaximum() != 0) fBaseSag->SetParameter(0,-hSignal->GetMaximum()/2);
     //else fBaseSag->SetParameter(0,gaussSigma*10);

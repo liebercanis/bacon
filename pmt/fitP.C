@@ -61,6 +61,12 @@ void fitP(TString tag="simEvents_20190218_10000_Ev_0_derivative")
     return;
   }
 
+   bool isSimulation=false;
+   if(fileName.Contains("sim")) isSimulation=true;
+
+   if(isSimulation) printf(" \t\t this is simulation \n");
+   else printf(" \t\t this is real data \n");
+
   TNtuple* ntHit=NULL;
   _file0->GetObject("ntHit",ntHit);
   if(ntHit==NULL) {
@@ -69,15 +75,29 @@ void fitP(TString tag="simEvents_20190218_10000_Ev_0_derivative")
   }
 
   double qnominal = 0.05;  //mV/(single electron)
-  TH1D* hinput = new TH1D("charge","charge",1000,-2,8);
+
+  TH1D* hinput = new TH1D("charge","charge",400,-2,8);
   ntHit->Draw("q/0.05>>charge","time>2");
+  TH1D* hcharge2 = new TH1D("charge2","charge",400,-2,8);
+  TH1D* hcharge0 = new TH1D("charge0","charge",400,-2,8);
+  if(isSimulation)  {
+    ntHit->Draw("q/0.05>>charge2","time>2&&good==2");
+    ntHit->Draw("q/0.05>>charge0","time>2&&good==0");
+    hcharge0->SetFillColor(kRed);
+    hcharge2->SetFillColor(kGreen);
+  }
 
   TString chName; chName.Form("charge-%s",tag.Data());
   TH1D* hq = (TH1D*) hinput->Clone(chName);
 
   TCanvas *charge = new TCanvas(chName,chName);
   hq->Draw();
+  if(isSimulation)  {
+    hcharge0->Draw("sames");
+    hcharge2->Draw("sames");
+  }
 
+ 
 
   double en=5;
   double  qn=2;
