@@ -122,6 +122,7 @@ public :
   TNtuple *ntDer;
   TNtuple *ntBase;
   TNtuple *ntSimMatch;
+  TH1I* hHitLength;
   TH1D* hFFT[NPMT];
   TH1D* hHitQ[NPMT];
   TH1D* hNHits[NPMT];

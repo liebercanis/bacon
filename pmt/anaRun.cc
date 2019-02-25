@@ -48,6 +48,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   ntPulse= new TNtuple("ntPulse"," pulse ","sum:shigh:slow:nsamp:kover:qlow:qhigggh:klow:khigh");
   ntWave = new TNtuple("ntWave"," wave ","event:v:d");
 
+  hHitLength = new TH1I("HitLength"," hit length",100,0,100);
   hPeakNWidth = new TH1I("PeakNWidth","PeakNWidth",100,0,100);
   hAllNWidth = new TH1I("AllNWidth","AllNWidth",100,0,100);
   hNWidthCut = new TH1I("NWidthCut","NWidth cut ",100,0,100);
@@ -427,7 +428,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         //simMatchStats->print();
       } // end is sim
 
-      if(nHists<nMaxHistEvents&&nhits>9) {
+      if(nHists<nMaxHistEvents) {
         plotWave(ientry,pmtNum,pmtHits );
         ++nHists;
       }
@@ -559,7 +560,11 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
   for(unsigned ip=0; ip<peakList.size(); ++ip) {
     unsigned klow  = std::get<0>(peakList[ip]);
     unsigned khigh = std::get<1>(peakList[ip]);
-    if( khigh-klow<minLength) continue;
+    //printf(" hit  %u (%u,%u) kind %i length %u \n",ip,klow,khigh,peakKind[ip],khigh-klow+1);
+    hHitLength->Fill(khigh-klow+1);
+    if( khigh-klow+1<minLength) {
+      continue;
+    }
     Double_t qhit=0;
     UInt_t peakt=0;
     Double_t qpeak=0;
@@ -591,6 +596,7 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
       firstCharge = qsum;
     }
     Double_t hitTime = phit.startTime*microSec;
+    //printf(" insert  %lu (%u,%u) %f \n",pmtHits.size(),phit.firstBin,phit.lastBin,phit.startTime*microSec);
     pmtHits.insert ( std::pair<Double_t,TPmtHit>(hitTime,phit) );
     hPeakNWidth->Fill(phit.lastBin-phit.firstBin+1);
   }
@@ -773,6 +779,7 @@ void anaRun::plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits ) {
   hpeaks->Reset();
   for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
     TPmtHit phiti = hitIter->second;
+    printf(" adding to plot (%u,%u) \n", phiti.firstBin,phiti.lastBin);
     for(Int_t ibin=phiti.firstBin; ibin<=phiti.lastBin; ++ibin) hpeaks->SetBinContent(ibin, hist->GetBinContent(ibin));
   }
   
@@ -947,7 +954,7 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
   std::vector<bool> crossingFound;
   crossingFound.resize(crossings.size());
   for(unsigned jc=0; jc<crossings.size(); ++jc)  {
-    //printf(" crossing %i time %f type %i \n",jc,crossingTime[jc],crossings[jc]);
+    //printf(" crossing %i bin %i time %f type %i \n",jc,crossingBin[jc],crossingTime[jc],crossings[jc]);
     crossingFound[jc]=false;
   }
 
@@ -979,29 +986,25 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
   }
   //printf("peaks with fours %zu  \n",peakList.size());
 
-  // pick up UP UP DOWN DOWN cases
+  // pick up UP UP, DOWN DOWN cases
   ip =0; 
   while ( ip<= crossings.size() -2 ) {  
     if(!crossingFound[ip]&&!crossingFound[ip+1]) {
       // UP UP
-      if(crossings[ip]==UPCROSS&&crossings[ip+1]==UPCROSS&&crossings[ip+2]) {
-        //printf(" peak %i time %f (%i %i )\n",ip,crossingTime[ip],crossings[ip],crossings[ip+1]); 
+      if(crossings[ip]==UPCROSS&&crossings[ip+1]==UPCROSS) {
+        //printf(" up up peak %i time %f (%i %i )\n",ip,crossingTime[ip],crossings[ip],crossings[ip+1]); 
         peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
         peakKind.push_back(1);
         ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(1));//sigma:d0:step:dstep
-        ip=ip+2;
         // DOWN DOWN 
-      } else if(crossings[ip]==DOWNCROSS&&crossings[ip+1]==DOWNCROSS&&crossings[ip+2]) {
-        //printf(" peak %i time %f (%i %i )\n",ip,crossingTime[ip],crossings[ip],crossings[ip+1]); 
+      } else if(crossings[ip]==DOWNCROSS&&crossings[ip+1]==DOWNCROSS) {
+        //printf(" down down peak %i time %f (%i %i )\n",ip,crossingTime[ip],crossings[ip],crossings[ip+1]); 
         peakList.push_back( std::make_pair(crossingBin[ip],crossingBin[ip+1]) );
         peakKind.push_back(2);
         ntDer->Fill(rms,v[crossingBin[ip]],double(crossingBin[ip+1]-crossingBin[ip]),double(2));//sigma:d0:step:dstep
-        ip=ip+2;
-      } else {
-        ip=ip+2;
       }
-    } else 
-      ip=ip+2;
+    }
+    ip=ip+2;
   }
   //printf("peaks with twos %zu  \n",peakList.size());
  
@@ -1028,7 +1031,7 @@ peakType anaRun::derivativePeaks(std::vector<Double_t> v,  Int_t nsum, Double_t 
   }
   */
 
-// return list
+  // return list
   return peakList;
 }
 void anaRun::trimPeaks(peakType& peakList, std::vector<Double_t> sv)
