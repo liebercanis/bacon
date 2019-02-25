@@ -779,7 +779,7 @@ void anaRun::plotWave(Int_t ientry, Int_t pmtNum, hitMap pmtHits ) {
   hpeaks->Reset();
   for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
     TPmtHit phiti = hitIter->second;
-    printf(" adding to plot (%u,%u) \n", phiti.firstBin,phiti.lastBin);
+    //printf(" adding to plot (%u,%u) \n", phiti.firstBin,phiti.lastBin);
     for(Int_t ibin=phiti.firstBin; ibin<=phiti.lastBin; ++ibin) hpeaks->SetBinContent(ibin, hist->GetBinContent(ibin));
   }
   
