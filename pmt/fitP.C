@@ -16,7 +16,7 @@ TString htag;
 std::vector<TH1D*> hlist;
 // single polyastatic 
 double xmax=10;
-static double xmin=0;
+static double xmin=0.5;
 
 static double fpolya(double *x, double *par)
 {
@@ -76,8 +76,8 @@ void fitP(TString tag="simEvents_20190218_10000_Ev_0_derivative")
 
   double qnominal = 0.05;  //mV/(single electron)
 
-  TH1D* hinput = new TH1D("charge","charge",400,-2,8);
-  ntHit->Draw("q/0.05>>charge","time>2");
+  TH1D* hinput = new TH1D("charge","charge time>7 kind=0",400,-2,8);
+  ntHit->Draw("q/0.05>>charge","time>7&&kind==0");
   TH1D* hcharge2 = new TH1D("charge2","charge",400,-2,8);
   TH1D* hcharge0 = new TH1D("charge0","charge",400,-2,8);
   if(isSimulation)  {
@@ -122,7 +122,7 @@ void fitP(TString tag="simEvents_20190218_10000_Ev_0_derivative")
   gStyle->SetOptStat();
   gStyle->SetOptFit();
 
-  TString chFit; chFit.Form("fit-%s",tag.Data());
+  TString chFit; chFit.Form("polya-fit-%s",tag.Data());
   TCanvas *cfit = new TCanvas(chFit,chFit);
   hq->Fit(fp[0],"R+");
   hq->Draw();

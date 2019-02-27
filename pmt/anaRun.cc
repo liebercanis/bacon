@@ -431,6 +431,13 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       if(nHists<nMaxHistEvents) {
         plotWave(ientry,pmtNum,pmtHits );
         ++nHists;
+        // print hits
+        printf(" event %u hits %lu : \n",ientry,pmtHits.size());
+        unsigned hitNumber=0;
+         for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
+            TPmtHit phiti = hitIter->second;
+            printf("\t %3u (%5i,%5i) kind=%i q=%f \n",hitNumber++,phiti.firstBin,phiti.lastBin,phiti.kind,phiti.qsum);
+        }
       }
 
       // look at hits

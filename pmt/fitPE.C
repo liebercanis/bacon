@@ -70,7 +70,7 @@ void reading(TDirectory *fdir)
   }
 }
 
-void fitP(TString tag="simEvents_20190218_10000_Ev_0_derivative")
+void fitPE(TString tag="simEvents_20190218_10000_Ev_0_derivative")
 {
   enum {NPMT=2};
   TString fileName ; fileName.Form("%s.root",tag.Data());
@@ -98,8 +98,8 @@ void fitP(TString tag="simEvents_20190218_10000_Ev_0_derivative")
 
   double qnominal = 0.05;  //mV/(single electron)
 
-  TH1D* hinput = new TH1D("charge","charge",400,-2,8);
-  ntHit->Draw("q/.05>>charge","time>6");
+  TH1D* hinput = new TH1D("charge","charge time>7 kind=any",400,-2,8);
+  ntHit->Draw("q/.05>>charge","time>7");
   TH1D* hcharge2 = new TH1D("charge2","charge",400,-2,8);
   TH1D* hcharge0 = new TH1D("charge0","charge",400,-2,8);
   if(isSimulation)  {
@@ -140,7 +140,7 @@ void fitP(TString tag="simEvents_20190218_10000_Ev_0_derivative")
     fp[i]->SetParameter(0,en);
     fp[i]->SetParameter(1,qn);
     fp[i]->SetParameter(2,.15);
-    //fp[i]->SetParLimits(2,0.5,10); // limit range of exp factor
+    //fp[i]->SetParLimits(2,0.,2); // limit range of exp factor
     fp[i]->SetParameter(3,0.9);
     //fp[i]->SetParLimits(3,0,1); // limit range signal 
     fp[i]->SetParameter(4,1.0);
