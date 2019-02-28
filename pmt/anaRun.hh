@@ -54,11 +54,13 @@ public :
   double derivativeSigma;
   double microSec;
   bool isSimulation;
+  const Double_t qnorm=0.05;
   Int_t nSigma;
   Int_t aveWidth;
   Int_t windowSize;
 
   Double_t baseline[NPMT];
+  Double_t sAve[NPMT];
   Double_t sDev[NPMT];
 
   anaRun(TString tag="runNov2018_1_0", Int_t maxEvents=0);
@@ -142,7 +144,7 @@ public :
   TH1D* hNLifeCut[NPMT];
   
   TH1D* hWeight[NPMT];
-  TH1D* hNoise;
+  TH1D* hNoise[NPMT];
   TH1D* hFFTNoise;
   TH1D* hBase;
   TH1D* hChargeWindow;

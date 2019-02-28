@@ -33,7 +33,7 @@ genPulses::genPulses(Int_t maxEvents)
   TDatime time;
   rand.SetSeed(time.GetTime());
   Double_t gaussMean = 0,gaussSigma = .0009;
-  TString outFileName = TString("rootData/simEvents_")+TString(to_string(time.GetDate()))+Form("_%i",nEvents)+TString(".root");
+  TString outFileName = TString("rootData/mySim_")+TString(to_string(time.GetDate()))+Form("_%i",nEvents)+TString(".root");
   TFile *outFile = new TFile(outFileName,"recreate");
   printf(" opening output file %s npulses %f gaussMean %f gaussSigma %f\n",outFileName.Data(),meanPhotons,gaussMean,gaussSigma);
 
@@ -119,7 +119,7 @@ genPulses::genPulses(Int_t maxEvents)
     if(k%100==0) printf("... event %i\n",k);
     
     //generate pulse start times
-    std::vector<Double_t> pulseTimes = PulseStartTime(k,meanPhotons,tau3);
+    std::vector<Double_t> pulseTimes = pulseStartTime(k,meanPhotons,tau3);
     std::vector<Double_t> sig,time;
 
     pmtSimulation->Nphotons = Int_t(pulseTimes.size());
@@ -183,7 +183,7 @@ genPulses::genPulses(Int_t maxEvents)
   cout<<"end of genPulses "<<outFileName<<" events " << simTree->GetEntries() << endl;
 }
 
-std::vector<Double_t> genPulses::PulseStartTime(Int_t event, Double_t meanPhotons, Double_t tau3)
+std::vector<Double_t> genPulses::pulseStartTime(Int_t event, Double_t meanPhotons, Double_t tau3)
 {
   std::vector<Double_t> pulseTimes;
 

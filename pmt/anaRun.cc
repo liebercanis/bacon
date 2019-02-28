@@ -41,7 +41,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   //ntBase = new TNtuple("ntBase","base","iw:w:b:bnon:bneil:width");
   TNtuple *ntMatchTime = new TNtuple("ntMatchTime"," match time ","ihit:dt");
   ntCal =  new TNtuple("ntCal","ntuple Cal","iev:ipmt:base:sigma:dbase:dsigma");
-  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:q:nwidth:peak:good:kind");
+  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:q:qerr:nwidth:peak:good:kind");
   ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:q:nwidth:peak:good:kind");
   ntDer =  new TNtuple("ntDer"," deriviative ","t:sigma:d0:kover:type");
   ntEvent= new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:qp0:qp1:q00:q01:q10:q11:qsum0:qsum1");
@@ -174,6 +174,8 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match:nnot:nmiss");
       }
       for(int ipmt=0; ipmt<gotPMT; ++ipmt) {
+        hNoise[ipmt] = new TH1D(Form("Noise%i_%s",ipmt,tag.Data()),"",1000,0,.1);
+
         hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
         hPMTSignal[ipmt] = new TH1D(Form("PMTSignal%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
         hPMTDerivative[ipmt] = new TH1D(Form("PMTDeriv%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
@@ -185,31 +187,37 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hWeight[ipmt]  = new TH1D(Form("BaselineWeight%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
         hNHits[ipmt] = new TH1D(Form("NHits%i",ipmt),Form(" number of hits PMT %i ",ipmt),10,0,50);
         hNegNHits[ipmt] = new TH1D(Form("NegNHits%i",ipmt),Form(" number of neg hits PMT %i ",ipmt),10,0,50);
-        hLife[ipmt] = new TH1D(Form("Life%i",ipmt),Form(" lifetime PMT %i ",ipmt),1000,0,maxLife);
+        hLife[ipmt] = new TH1D(Form("Life%i",ipmt),Form(" lifetime PMT %i ",ipmt),500,0,maxLife);
         hLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
-        hNLife[ipmt] = new TH1D(Form("NLife%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
+        hNLife[ipmt] = new TH1D(Form("NLife%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),500,0,maxLife);
         hNLife[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
         //
-        hLifeCut[ipmt] = new TH1D(Form("LifeCut%i",ipmt),Form(" Q lifetime PMT %i ",ipmt),1000,0,maxLife);
+        hLifeCut[ipmt] = new TH1D(Form("LifeCut%i",ipmt),Form(" Q lifetime PMT %i ",ipmt),500,0,maxLife);
         hLifeCut[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
 
-        hLifeCount[ipmt] = new TH1D(Form("LifeCount%i",ipmt),Form(" Start lifetime PMT %i ",ipmt),1000,0,maxLife);
+        hLifeCount[ipmt] = new TH1D(Form("LifeCount%i",ipmt),Form(" Start lifetime PMT %i ",ipmt),500,0,maxLife);
         hLifeCount[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
 
 
-        hNLifeCut[ipmt] = new TH1D(Form("NLifeCut%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
+        hNLifeCut[ipmt] = new TH1D(Form("NLifeCut%i",ipmt),Form(" negative pulse lifetime PMT %i ",ipmt),500,0,maxLife);
         hNLifeCut[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+        hLife[ipmt]->Sumw2();
+        hLifeCut[ipmt]->Sumw2();
+        hNLife[ipmt]->Sumw2();
 
         //hLife[ipmt]->Sumw2();
         if(isSimulation) {
-          hLifeSim[ipmt] = new TH1D(Form("LifeSim%i",ipmt),Form(" real pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
+          hLifeSim[ipmt] = new TH1D(Form("LifeSim%i",ipmt),Form(" real pulse lifetime PMT %i ",ipmt),500,0,maxLife);
           hLifeSim[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+          hLifeSim[ipmt]->Sumw2();
 
-          hLifeTrue[ipmt] = new TH1D(Form("LifeTrue%i",ipmt),Form(" truth lifetime PMT %i ",ipmt),1000,0,maxLife);
+          hLifeTrue[ipmt] = new TH1D(Form("LifeTrue%i",ipmt),Form(" truth lifetime PMT %i ",ipmt),500,0,maxLife);
           hLifeTrue[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+          hLifeTrue[ipmt]->Sumw2();
           
-          hLifeNoise[ipmt] = new TH1D(Form("LifeNoise%i",ipmt),Form(" noise pulse lifetime PMT %i ",ipmt),1000,0,maxLife);
+          hLifeNoise[ipmt] = new TH1D(Form("LifeNoise%i",ipmt),Form(" noise pulse lifetime PMT %i ",ipmt),500,0,maxLife);
           hLifeNoise[ipmt]->GetXaxis()->SetTitle(" micro-seconds ");
+          hLifeNoise[ipmt]->Sumw2();
 
           hPMTSim[ipmt] = new TH1D(Form("PMTSim%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
         }      
@@ -307,6 +315,9 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         sndigi[pmtNum].push_back(ddigi[pmtNum][i]-baselineDigi[pmtNum][i]);
         hPMTSignal[pmtNum]->SetBinContent(i,(ddigi[pmtNum][i]-baselineDigi[pmtNum][i]));
       }
+      getAverage(sddigi[pmtNum],sAve[pmtNum],sDev[pmtNum]);
+      hNoise[pmtNum]->Fill(sDev[pmtNum]);
+      
 
       // trim peaks
       trimPeaks(peakList,sddigi[pmtNum]);
@@ -315,10 +326,10 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       Double_t minDev = 0*sDev[pmtNum];
       Double_t maxDev = fsigma*sDev[pmtNum];
       Double_t firstTime, firstCharge;
-      hitMap  pmtHits = makeHits(peakList,peakKind,sddigi[pmtNum],maxDev,firstTime,firstCharge);
+      hitMap  pmtHits = makeHits(peakList,peakKind,sddigi[pmtNum],sDev[pmtNum],firstTime,firstCharge);
       // negative pulses
       Double_t nfirstTime, nfirstCharge;
-      hitMap  npmtHits = makeHits(npeakList,npeakKind, ndigi[pmtNum],maxDev,nfirstTime,nfirstCharge);
+      hitMap  npmtHits = makeHits(npeakList,npeakKind, ndigi[pmtNum],sDev[pmtNum],nfirstTime,nfirstCharge);
 
       for(unsigned iw=0; iw< weight.size(); ++iw) {
         //ntBase->Fill(float(iw),weight[iw],baserec[iw],basenon[iw],baselineDigi[pmtNum][iw],float(maxwidth));
@@ -431,13 +442,14 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       if(nHists<nMaxHistEvents) {
         plotWave(ientry,pmtNum,pmtHits );
         ++nHists;
-        // print hits
+        /* print hits
         printf(" event %u hits %lu : \n",ientry,pmtHits.size());
         unsigned hitNumber=0;
          for (hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
             TPmtHit phiti = hitIter->second;
             printf("\t %3u (%5i,%5i) kind=%i q=%f \n",hitNumber++,phiti.firstBin,phiti.lastBin,phiti.kind,phiti.qsum);
         }
+        */
       }
 
       // look at hits
@@ -451,16 +463,27 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
         Int_t istartBin =  hLife[pmtNum]->FindBin(phitTime); 
         qsum[pmtNum] += phiti.qsum;
-        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phiti.qsum,nwidth,phiti.qpeak,phiti.good,phiti.kind);
+        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phiti.qsum,phiti.qerr,nwidth,phiti.qpeak,phiti.good,phiti.kind);
         hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
-        if(phiti.qsum>lifeChargeCut) {
+        hLife[pmtNum]->SetBinError(istartBin, sqrt( pow(hLife[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
+        //if(phiti.qsum>lifeChargeCut) {
+        if(phiti.kind==0) {
           hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+          hLifeCut[pmtNum]->SetBinError(istartBin, sqrt( pow(hLifeCut[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
           hLifeCount[pmtNum]->Fill( phitTime );
         }
 
         if(isSimulation) {
-          if( phiti.good>0 ) hLifeSim[pmtNum]->SetBinContent( istartBin, hLifeSim[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
-          else hLifeNoise[pmtNum]->SetBinContent( istartBin, hLifeNoise[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+          if( phiti.good>0 ) {
+            hLifeSim[pmtNum]->SetBinContent( istartBin, hLifeSim[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+            hLifeSim[pmtNum]->SetBinError(istartBin, sqrt( pow(hLifeSim[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
+
+          }
+          else {
+            hLifeNoise[pmtNum]->SetBinContent( istartBin, hLifeNoise[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+            hLifeNoise[pmtNum]->SetBinError(istartBin, sqrt( pow(hLifeNoise[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
+
+          }
         }
 
         // plot  pulses
@@ -594,6 +617,8 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
     phit.peakt=peakt;
     phit.startTime=pmtEvent->time[klow];
     phit.peakWidth=pmtEvent->time[khigh] - pmtEvent->time[klow];
+    // this is N= q/qnorm and delta q = root(n)*qnorm;
+    phit.qerr = sqrt(  pow(sigma*Double_t(phit.peakWidth),2)+ qnorm*qsum );
     phit.kind = peakKind[ip];
 
     // just use the biggest pulse 
