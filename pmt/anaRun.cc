@@ -20,7 +20,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   fsigma=sigma;
   if(sigma==0) fsigma=5;
   derivativeSigma=3.5;
-  windowSize=15;
+  windowSize=6;
   //windowSize=2;
   nSigma=5;
   aveWidth=20;
