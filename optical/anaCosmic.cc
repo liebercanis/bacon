@@ -1,0 +1,104 @@
+#include "MGTMCEventSteps.hh"
+#include "MGTMCStepData.hh"
+#include "MGTMCEventHeader.hh"
+#include "io/MGOutputMCOpticalRun.hh"
+#include "MGTMCRun.hh"
+#include "TMath.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TChain.h"
+#include "TString.h"
+#include "TCanvas.h"
+#include "TH3D.h"
+#include "TH2D.h"
+#include "TProof.h"
+#include "TROOT.h"
+#include "TObjArray.h"
+#include "TObjString.h"
+#include "TObject.h"
+#include "TString.h"
+#include <map>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <map>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <getopt.h>
+#include <TDatime.h>
+#include <TNtuple.h>
+#include <unordered_map>
+#include <map>
+
+using namespace std;
+
+inline bool fileExist (const std::string& name) {
+  struct stat buffer;   
+  return (stat (name.c_str(), &buffer) == 0); 
+}
+
+int main(int argc, char *argv[])
+{ 
+  if(argc<2) {
+    std::cout << "Usage: " << argv[0] << " <input file name without .root extension in directory ../ >" << '\n';
+    return 0;
+  }
+  TString fileName = argv[1];
+  TString dir = "/home/gold/XenonDoping/";
+  TString fullFileName= dir+fileName+TString(".root");
+  TFile* infile = TFile::Open(fullFileName,"readonly");
+  if(!infile){
+    printf(" cannot find input file %s\n",fullFileName.Data()); 
+    return 0;
+  }
+  printf(" reading input file %s\n",fullFileName.Data()); 
+
+  TChain *fTree = new TChain("fTree");
+  fTree->Add(dir+fileName+TString(".root"));
+  Long64_t nentries = (Long64_t)fTree->GetEntries();
+
+  MGTMCEventSteps *eventSteps = 0;
+  MGTMCEventSteps *eventPrimaries = 0;
+  if(fTree != NULL){
+    fTree->SetBranchAddress("eventSteps",&eventSteps);
+    fTree->SetBranchAddress("eventPrimaries",&eventPrimaries);
+  }
+  else{
+    cout<<"NULL fTree"<<endl;
+    return 0;
+  }
+
+  TDatime time;
+  //time 12:36:26 133626
+  ///date 24/12/1997 19971224
+  TString outFileName = TString("anaCosmic-")+to_string(time.GetTime())+TString("-")+to_string(time.GetDate())+TString(".root");
+  TFile *outFile = new TFile(outFileName,"recreate");
+  printf(" opened output %s \n",outFile->GetName());
+  TNtuple *ntPrim= new TNtuple("ntPrim","","e:r:phi");
+
+  const MGTMCStepData *primary;
+
+  cout<<". Processing "<<nentries<<" entries"<<endl;
+  for(Long64_t ientry = 0; ientry < nentries ; ++ientry) {
+    if(ientry%10 == 0 ) cout<<"\tprocessed "<< ientry <<" events"<<endl;
+    fTree->GetEntry(ientry);
+    primary = eventPrimaries->GetStep(0);
+    if(ientry%10 == 0 ) cout<<"\tprocessed "<< ientry << endl;
+    if(primary == NULL){
+      cout<<"null primary"<<endl;
+      continue;
+    }
+    TVector3 pvec = primary->GetMomentumVector(); 
+    Double_t x = primary->GetX(),y = primary->GetY(),z = primary->GetZ();//,time = primary->GetT();
+    Double_t px = primary->GetPx(),py = primary->GetPy(),pz = primary->GetPz();
+    Double_t r = sqrt(x*x+y*y);
+    Double_t theta = std::acos(x/r);
+    ntPrim->Fill(pvec.Mag(),r,theta);
+  }
+  outFile->Write();
+  outFile->Close();
+  cout<<"root -l "<<fileName<<endl;
+  return 0;
+}
