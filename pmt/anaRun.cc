@@ -179,6 +179,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
         hPMTSignal[ipmt] = new TH1D(Form("PMTSignal%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
         hPMTDerivative[ipmt] = new TH1D(Form("PMTDeriv%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
+        hDerivativeNoise[ipmt] = new TH1D(Form("DerivNoise%i_%s",ipmt,tag.Data()),"",1000,-.02,.02);
         hSum[ipmt] = new TH1D(Form("SumPmt%i",ipmt),"",nSamples,pmtXLow,pmtXHigh);
         hSum[ipmt]->GetXaxis()->SetTitle(" seconds ");
         hBaseline[ipmt]  = new TH1D(Form("Baseline%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
@@ -278,6 +279,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         ntWave->Fill(ientry,ddigi[j][isample],deriv[j][isample]);
       }
       ntCal->Fill(ientry,j,rawAve[j],rawSigma[j],derAve[j],derSigma[j]);
+      for(unsigned isample = 0; isample < deriv[j].size(); isample++) hDerivativeNoise[j]->Fill(deriv[j][isample]-derAve[j]);
     }
 
     

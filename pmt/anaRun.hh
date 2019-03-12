@@ -133,6 +133,7 @@ public :
   TH1D* hPMTSim[NPMT];
   TH1D* hPMTSignal[NPMT];
   TH1D* hPMTDerivative[NPMT];
+  TH1D* hDerivativeNoise[NPMT];
   TH1D* hSum[NPMT];
   TH1D* hLife[NPMT];
   TH1D* hLifeSim[NPMT];
