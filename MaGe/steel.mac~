@@ -1,0 +1,50 @@
+# Management 
+/MG/manager/mglog routine #debugging
+/MG/manager/seedWithUUID
+
+# Process List
+# sets step size to small
+/MG/processes/realm DarkMatter
+/MG/processes/lowenergy true
+/MG/processes/optical true
+#/MG/processes/opticalOnly true
+
+# Configure Detector
+/MG/geometry/detector BACON 
+# Initialize Geant4 and geometry
+/run/initialize
+
+# stepping action 
+/MG/eventaction/rootschema MCOpticalRun
+/MG/eventaction/reportingfrequency 1
+/MG/eventaction/rootfilename steelCoGamma.root
+
+#/MG/io/MCOpticalRun/SetSensitiveIDLabelScheme askGeom
+/MG/io/MCOpticalRun/SetSensitiveIDLabelScheme manual
+/MG/io/MCOpticalRun/AddSensitiveVolnameID Detector 201
+/MG/io/MCOpticalRun/AddSensitiveVolnameID argonGasPhysical 202
+/MG/io/MCOpticalRun/AddSensitiveVolnameID physicalPMT_1 101
+/MG/io/MCOpticalRun/AddSensitiveVolnameID physicalPMT_0 100
+/MG/io/MCOpticalRun/setRunID 001
+/MG/io/MCOpticalRun/useTimeWindow true
+/MG/io/MCOpticalRun/setTimeWindow 86400 second
+/MG/io/MCOpticalRun/setNSteps 50000
+# do KillAll and WriteAllSteps
+/MG/io/MCOpticalRun/KillAll 
+/MG/io/MCOpticalRun/setWriteAllSteps
+#/MG/io/MCOpticalRun/setWriteAllStepsInEventsThatDepositEnergy
+#/MG/io/MCOpticalRun/setWriteAllSensitiveSteps
+
+#generate radioactivbe decays in the stainless steel of the cryostat
+/MG/generator/select GSS
+/MG/generator/gss/boundingR 26 cm
+/MG/generator/gss/origin 0. 0. 0. cm
+/MG/generator/gss/boundvol cryostat
+/MG/generator/select RDMiso
+/grdm/ion 60 27 0
+/grdm/nucleusLimits 60 28
+#Radon 222 will not work for argon checks
+#/grdm/ion 222 86 0
+#/grdm/nucleusLimits 206 224 82 86
+#/tracking/verbose 2
+/run/beamOn 1000

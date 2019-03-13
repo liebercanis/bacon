@@ -1,0 +1,17 @@
+#!/bin/bash
+if [ -z $1 ] ; then  
+         echo "usage: submit <tag>.mac "
+         exit;
+fi
+TAG=$1
+#JOBNAME=$1.sh
+if [ -e $TAG.log ]; then rm $TAG.log; fi
+#if [ -e $JOBNAME ]; then rm $JOBNAME; fi
+#echo "creating job $JOBNAME "
+#echo "#!/bin/bash -l" >> $JOBNAME
+#echo "MaGe $TAG.mac"  >> $JOBNAME
+#cat $JOBNAME
+#qsub $JOBNAME -o $TAG.log
+echo "nohup MaGe $TAG.mac >& $TAG.log &"
+nohup bash MaGe $TAG.mac >& $TAG.log &
+exit 

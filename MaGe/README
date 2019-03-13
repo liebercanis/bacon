@@ -1,0 +1,1 @@
+alias repj='java -jar  -mx1000M bin/Linux-g++/HepRApp.jar'

@@ -1,0 +1,79 @@
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+//---------------------------------------------------------------------------//
+//bb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nu//
+//                                                                           //
+//                                                                           //
+//                         MaGe Simulation                                   //
+//                                                                           //
+//      This code implementation is the intellectual property of the         //
+//      MAJORANA and Gerda Collaborations. It is based on Geant4, an         //
+//      intellectual property of the RD44 GEANT4 collaboration.              //
+//                                                                           //
+//                        *********************                              //
+//                                                                           //
+//    Neither the authors of this software system, nor their employing       //
+//    institutes, nor the agencies providing financial support for this      //
+//    work  make  any representation or  warranty, express or implied,       //
+//    regarding this software system or assume any liability for its use.    //
+//    By copying, distributing or modifying the Program (or any work based   //
+//    on on the Program) you indicate your acceptance of this statement,     //
+//    and all its terms.                                                     //
+//                                                                           //
+//bb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nubb0nu//
+//---------------------------------------------------------------------------//
+/**                                                            
+* $Id: MGGeneratorCosmicMessenger.hh,
+*      
+* CLASS DECLARATION:  MGGeneratorCosmicMessenger.hh
+*
+*---------------------------------------------------------------------------//
+* AUTHOR: Michael Gold
+* CONTACT: mgold@unm.edu
+* FIRST SUBMISSION: Mar 4 ,2019
+* 
+* REVISION:
+*/
+// --------------------------------------------------------------------------//
+
+#ifndef _MGGENERATORCOSMICMESSENGER_HH
+#define _MGGENERATORCOSMICMESSENGER_HH
+
+//---------------------------------------------------------------------------//
+
+#include "G4UImessenger.hh"
+#include "G4UIcmdWithADoubleAndUnit.hh"
+#include "G4UIcmdWith3VectorAndUnit.hh"
+
+//---------------------------------------------------------------------------//
+
+class G4UIdirectory;
+class G4UIcmdWithAString;
+class MGGeneratorLGNDLiquidArgon;
+
+class MGGeneratorCosmicMessenger : public G4UImessenger
+{
+public:
+	MGGeneratorCosmicMessenger(MGGeneratorLGNDLiquidArgon *generator);
+	MGGeneratorCosmicMessenger(const MGGeneratorCosmicMessenger &);
+	~MGGeneratorCosmicMessenger();
+
+	void SetNewValue(G4UIcommand *cmd, G4String newValue);
+
+protected:
+
+private:
+	MGGeneratorLGNDLiquidArgon	*fCosmicGenerator;
+	G4UIdirectory	*fCosmicDirectory;
+  G4UIcmdWithADoubleAndUnit *fCosmicSetRadius;
+  G4UIcmdWithADoubleAndUnit *fCosmicSetHeight;
+  G4UIcmdWith3VectorAndUnit *fCosmicSetCenterVector;
+  G4UIcmdWithAString *fCosmicSetParticle;
+  G4UIcmdWithADoubleAndUnit *fCosmicSetEnergy;
+  G4UIcmdWithADoubleAndUnit *fCosmicSetScintMean;
+  G4UIcmdWithADoubleAndUnit *fCosmicSetScintSigma;
+	//G4UIcmdWithAString	*fSetSurfaceVolumeCmd;
+
+};
+#endif
+

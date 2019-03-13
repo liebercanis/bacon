@@ -1,0 +1,1279 @@
+nohup: ignoring input
+Majorana/Gerda Monte Carlo Simulation
+------------------------------------------
+MaGe Revision: 5303d95
+MaGe SVN Tag: master
+MaGe Last Updated: Mon, 18 Feb 2019
+MGDO Revision: 3e7c459
+MGDO SVN Tag: master
+MGDO Last Updated: Mon, 14 Jan 2019
+CLHEP Version: G4CLHEP
+[34mTrace[m:[1mMaGe.cc(99)[0m: Creating G4 and MJ Runmanagers.
+
+*************************************************************
+ Geant4 version Name: geant4-10-04    (08-December-2017)
+                      Copyright : Geant4 Collaboration
+                      Reference : NIM A 506 (2003), 250-303
+                            WWW : http://cern.ch/geant4
+*************************************************************
+
+[34mTrace[m:[1msrc/MGManagerMessenger.cc(122)[0m: Constructor called.
+[34mTrace[m:[1mMaGe.cc(107)[0m: Creating and registering G4 geometry.
+[34mTrace[m:[1mMaGe.cc(114)[0m: Registering G4 physics processes.
+
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : GeomMgt1001
+      issued by : G4RegionStore::GetRegion()
+Region NOT found in store !
+        Region SensitiveRegion NOT found in store !
+        Returning NULL pointer.
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+[34mTrace[m:[1msrc/MGProcessesList.cc(614)[0m: Production cuts set
+[34mTrace[m:[1mMaGe.cc(138)[0m: Creating and initializing visualization manager.
+Visualization Manager instantiating with verbosity "warnings (3)"...
+Visualization Manager initialising...
+Registering graphics systems...
+
+You have successfully registered the following graphics systems.
+Current available graphics systems are:
+ASCIITree (ATree)
+DAWNFILE (DAWNFILE)
+G4HepRep (HepRepXML)
+G4HepRepFile (HepRepFile)
+RayTracer (RayTracer)
+VRML1FILE (VRML1FILE)
+VRML2FILE (VRML2FILE)
+gMocrenFile (gMocrenFile)
+OpenGLImmediateX (OGLIX, OGLI)
+OpenGLStoredX (OGLSX, OGL, OGLS)
+
+Registering model factories...
+
+You have successfully registered the following model factories.
+Registered model factories:
+  generic
+  drawByAttribute
+  drawByCharge
+  drawByOriginVolume
+  drawByParticleID
+  drawByEncounteredVolume
+
+Registered filter factories:
+  attributeFilter
+  chargeFilter
+  originVolumeFilter
+  particleFilter
+  encounteredVolumeFilter
+
+You have successfully registered the following user vis actions.
+Run Duration User Vis Actions: none
+End of Event User Vis Actions: none
+End of Run User Vis Actions: none
+
+Some /vis commands (optionally) take a string to specify colour.
+"/vis/list" to see available colours.
+[34mTrace[m:[1mMaGe.cc(144)[0m: Registering G4 event generator.
+[34mTrace[m:[1mMaGe.cc(150)[0m: Registering G4 run action.
+[34mTrace[m:[1mMaGe.cc(156)[0m: Registering G4 event action.
+[34mTrace[m:[1msrc/MGManagementEventActionMessenger.cc(251)[0m: Event Action Messenger Defined.
+[34mTrace[m:[1mMaGe.cc(162)[0m: Registering G4 tracking action.
+[34mTrace[m:[1mMaGe.cc(169)[0m: Registering G4 stepping action.
+[34mTrace[m:[1mMaGe.cc(176)[0m: Registering G4 stacking action.
+[32mRoutine[m:[1msrc/MGManagerMessenger.cc(247)[0m: CLHEP::HepRandom seed set to: 3865111345
+[32mRoutine[m:[1msrc/MGProcessesList.cc(638)[0m: Realm set to DarkMatter
+Entering batch mode...
+Executing script file from command line: cosmic.mac
+
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : GeomMgt1001
+      issued by : G4RegionStore::GetRegion()
+Region NOT found in store !
+        Region SensitiveRegion NOT found in store !
+        Returning NULL pointer.
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+[32mRoutine[m:[1msrc/MGManagerDetectorConstruction.cc(605)[0m: Using the BACON detector.
+[32mRoutine[m:[1msrc/MGManagerDetectorConstruction.cc(388)[0m: Selected geometry requires building BACON materials from PSQL dump.
+[32mRoutine[m:[1msrc/MGManagerDetectorConstruction.cc(389)[0m: 	 (also the same as LGND materials table since Neil put some much work into it)
+[32mRoutine[m:[1msrc/MGLGNDLocalMaterialTable.cc(79)[0m: Building LGND-related isotopes.
+[32mRoutine[m:[1msrc/MGLGNDLocalMaterialTable.cc(178)[0m: Built LGND-related isotopes.
+[32mRoutine[m:[1msrc/MGLGNDLocalMaterialTable.cc(199)[0m: Building LGND-related Elements.
+[32mRoutine[m:[1msrc/MGLGNDLocalMaterialTable.cc(363)[0m: LGND-related materials built.
+[32mRoutine[m:[1msrc/MGLGNDLocalMaterialTable.cc(374)[0m: Building LGND-related materials.
+[32mRoutine[m:[1msrc/MGLGNDLocalMaterialTable.cc(580)[0m: LGND-related materials built.
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(567)[0m: TPB re-emission spectrum ( 251 points) successfully loaded from file.
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(703)[0m: Fibers absorption spectrum ( 117 points) successfully loaded from file.
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(722)[0m: Fibers emission spectrum ( 103 points) successfully loaded from file.
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(141)[0m: LAr Optical parameters: 
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(142)[0m:      Scintillation yield : 42372.9 ph/MeV
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(143)[0m:      Singlet lifetime : 5.95 ns
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(144)[0m:      Triplet lifetime : 922 ns
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(380)[0m: LAr Optical parameters: 
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(381)[0m:      Scintillation yield : 42372.9 ph/MeV
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(382)[0m:      Singlet lifetime : 6 ns
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(383)[0m:      Triplet lifetime : 240 ns
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(549)[0m: Constructed TPB Properties
+[32mRoutine[m:[1msrc/MGLGNDOpticalMaterialProperties.cc(102)[0m: Constructed LGND Optical Material Properties
+Checking overlaps for volume physicalPMT_0 ... OK! 
+Checking overlaps for volume physicalPMT_1 ... OK! 
+Checking overlaps for volume physicalHousingPMT_0 ... OK! 
+Checking overlaps for volume physicalHousingPMT_1 ... OK! 
+Checking overlaps for volume physicalWLS_0 ... OK! 
+Checking overlaps for volume physicalWLS_1 ... OK! 
+Checking overlaps for volume airSpace ... OK! 
+Checking overlaps for volume cryostat ... 
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : GeomVol1002
+      issued by : G4PVPlacement::CheckOverlaps()
+Overlap with volume already placed !
+          Overlap is detected for volume cryostat
+          with argonGasPhysical volume's
+          local point (47.0913,86.4092,42.037), overlapping by at least: 1.27 cm 
+NOTE: Reached maximum fixed number -1- of overlaps reports for this volume !
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+Checking overlaps for volume argonGasPhysical ... 
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : GeomVol1002
+      issued by : G4PVPlacement::CheckOverlaps()
+Overlap with volume already placed !
+          Overlap is detected for volume argonGasPhysical
+          with cryostat volume's
+          local point (104.314,217.587,291.866), overlapping by at least: 234.428 um 
+NOTE: Reached maximum fixed number -1- of overlaps reports for this volume !
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+/home/admin/geant4.10.04-build/data/G4NDL4.5
+@@@ G4ParticleHPInelastic instantiated for particle neutron data directory variable is G4NEUTRONHPDATA pointing to /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic
+@@@ G4ParticleHPInelasticData instantiated for particle neutron data directory variable is G4NEUTRONHPDATA pointing to /home/admin/geant4.10.04-build/data/G4NDL4.5
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/8_17_Oxygen
+NeutronHP: /Elastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/8_17_Oxygen
+NeutronHP: /Inelastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/8_17_Oxygen
+NeutronHP: /Capture file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Inelastic file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Inelastic file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Inelastic file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/8_17_Oxygen
+NeutronHP: /Elastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/8_17_Oxygen
+NeutronHP: /Inelastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/8_17_Oxygen
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+====================================================================
+                      MaGe physics list                             
+====================================================================
+Electromagnetic physics: Livermore/LowEnergy 
+====================================================================
+Physics for optical photons registered
+====================================================================
+QGSP_BERT_HP
+====================================================================
+
+-------- WWWW ------- G4Exception-START -------- WWWW -------
+*** G4Exception : GeomMgt1001
+      issued by : G4RegionStore::GetRegion()
+Region NOT found in store !
+        Region SensitiveRegion NOT found in store !
+        Returning NULL pointer.
+*** This is just a warning message. ***
+-------- WWWW -------- G4Exception-END --------- WWWW -------
+
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for MJOutputDetectorEventData.hh
+   requested to autoload type MJOutputDetectorEventData
+Error in <TCling::RegisterModule>: cannot find dictionary module libROOT_mjioROOT_rdict.pcm
+Error in cling::AutoloadingVisitor::InsertIntoAutoloadingState:
+   Missing FileEntry for MGOutputG4StepsData.hh
+   requested to autoload type MGOutputG4StepsData
+Error in <TCling::RegisterModule>: cannot find dictionary module libROOT_ioROOT_rdict.pcm
+[32mRoutine[m:[1msrc/MGManagementEventActionMessenger.cc(459)[0m:  MCOpticalRun Output selected
+
+### ===  Deexcitation model UAtomDeexcitation is activated for 1 region:
+          DefaultRegionForTheWorld  1  1  0
+### ===  Auger cascade flag: 1
+### ===  Ignore cuts flag:   0
+
+phot:   for  gamma    SubType= 12  BuildTable= 0
+      LambdaPrime table from 200 keV to 1 TeV in 134 bins 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+ LivermorePhElectric :  Emin=        0 eV    Emax=        1 TeV   AngularGenSauterGavrila  FluoActive
+
+compt:   for  gamma    SubType= 13  BuildTable= 1
+      Lambda table from 100 eV  to 1 MeV, 20 bins per decade, spline: 1
+      LambdaPrime table from 1 MeV to 1 TeV in 120 bins 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+    LivermoreCompton :  Emin=        0 eV    Emax=        1 TeV  FluoActive
+
+conv:   for  gamma    SubType= 14  BuildTable= 1
+      Lambda table from 1.022 MeV to 1 TeV, 22 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+ LivermoreConversion :  Emin=        0 eV    Emax=       80 GeV
+     BetheHeitlerLPM :  Emin=       80 GeV   Emax=        1 TeV
+
+Rayl:   for  gamma    SubType= 11  BuildTable= 1
+      Lambda table from 100 eV  to 100 keV, 20 bins per decade, spline: 0
+      LambdaPrime table from 100 keV to 1 TeV in 140 bins 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+   LivermoreRayleigh :  Emin=        0 eV    Emax=        1 TeV   CullenGenerator
+
+msc:   for e-    SubType= 10
+      RangeFactor= 0.02, stepLimitType: 3, latDisplacement: 1, skin= 1, geomFactor= 2.5
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=      100 MeV  Table with 120 bins Emin=    100 eV    Emax=    100 MeV
+        WentzelVIUni :  Emin=      100 MeV   Emax=        1 TeV  Table with 80 bins Emin=    100 MeV   Emax=      1 TeV
+
+eIoni:   for  e-    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.1, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+       LowEnergyIoni :  Emin=        0 eV    Emax=      100 keV   deltaVI
+        MollerBhabha :  Emin=      100 keV   Emax=        1 TeV   deltaVI
+
+eBrem:   for  e-    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      LPM flag: 1 for E > 1 GeV,  VertexHighEnergyTh(GeV)= 100000
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+           LowEnBrem :  Emin=        0 eV    Emax=        1 GeV   AngularGen2BS
+            eBremLPM :  Emin=        1 GeV   Emax=        1 TeV   DipBustGen
+
+CoulombScat:   for  e-, integral: 1     SubType= 1  BuildTable= 1
+      Lambda table from 100 MeV to 1 TeV, 20 bins per decade, spline: 1
+      ThetaMin(p) < Theta(degree) < 180; pLimit(GeV^1)= 0.139531
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+  eCoulombScattering :  Emin=      100 MeV   Emax=        1 TeV
+
+SynRad:  Incoherent Synchrotron Radiation
+      good description for long magnets at all energies
+
+msc:   for e+    SubType= 10
+      RangeFactor= 0.02, stepLimitType: 3, latDisplacement: 1, skin= 1, geomFactor= 2.5
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=      100 MeV  Table with 120 bins Emin=    100 eV    Emax=    100 MeV
+        WentzelVIUni :  Emin=      100 MeV   Emax=        1 TeV  Table with 80 bins Emin=    100 MeV   Emax=      1 TeV
+
+eIoni:   for  e+    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.1, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+        MollerBhabha :  Emin=        0 eV    Emax=        1 TeV   deltaVI
+
+eBrem:   for  e+    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      LPM flag: 1 for E > 1 GeV,  VertexHighEnergyTh(GeV)= 100000
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+             eBremSB :  Emin=        0 eV    Emax=        1 GeV   AngularGen2BS
+            eBremLPM :  Emin=        1 GeV   Emax=        1 TeV   DipBustGen
+
+annihil:   for  e+, integral: 1     SubType= 5  BuildTable= 0
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            eplus2gg :  Emin=        0 eV    Emax=        1 TeV
+
+CoulombScat:   for  e+, integral: 1     SubType= 1  BuildTable= 1
+      Lambda table from 100 MeV to 1 TeV, 20 bins per decade, spline: 1
+      ThetaMin(p) < Theta(degree) < 180; pLimit(GeV^1)= 0.139531
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+  eCoulombScattering :  Emin=      100 MeV   Emax=        1 TeV
+
+msc:   for proton    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+        WentzelVIUni :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+hIoni:   for  proton    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               Bragg :  Emin=        0 eV    Emax=        2 MeV   deltaVI
+          BetheBloch :  Emin=        2 MeV   Emax=        1 TeV   deltaVI
+
+hBrems:   for  proton    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               hBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+hPairProd:   for  proton    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 9x1001; from 7.50618 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+           hPairProd :  Emin=        0 eV    Emax=        1 TeV
+
+nuclearStopping:   for  proton    SubType= 8  BuildTable= 0
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+   ICRU49NucStopping :  Emin=        0 eV    Emax=        1 MeV
+
+msc:   for GenericIon    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 0
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=        1 TeV
+
+ionIoni:   for  GenericIon    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.001, dRoverRange= 0.1, integral: 1, fluct: 1, linLossLimit= 0.02
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+         ParamICRU73 :  Emin=        0 eV    Emax=        1 TeV   deltaVI
+
+nuclearStopping:   for  GenericIon    SubType= 8  BuildTable= 0
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+   ICRU49NucStopping :  Emin=        0 eV    Emax=        1 MeV
+=======================================================================
+======       Radioactive Decay Physics Parameters              ========
+=======================================================================
+Max life time                                     1e+15 ps
+Internal e- conversion flag                       1
+Stored internal conversion coefficients           0
+Enable correlated gamma emission                  0
+Max 2J for sampling of angular correlations       10
+Atomic de-excitation enabled                      1
+Auger electron emission enabled                   1
+Auger cascade enabled                             1
+Check EM cuts disabled for atomic de-excitation   0
+Use Bearden atomic level energies                 0
+=======================================================================
+
+msc:   for alpha    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+ionIoni:   for  alpha    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.01, dRoverRange= 0.1, integral: 1, fluct: 1, linLossLimit= 0.02
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            BraggIon :  Emin=        0 eV    Emax=   7.9452 MeV   deltaVI
+          BetheBloch :  Emin=   7.9452 MeV   Emax=        1 TeV   deltaVI
+
+nuclearStopping:   for  alpha    SubType= 8  BuildTable= 0
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+   ICRU49NucStopping :  Emin=        0 eV    Emax=        1 MeV
+
+msc:   for anti_proton    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+        WentzelVIUni :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+hIoni:   for  anti_proton    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            ICRU73QO :  Emin=        0 eV    Emax=        2 MeV   deltaVI
+          BetheBloch :  Emin=        2 MeV   Emax=        1 TeV   deltaVI
+
+hBrems:   for  anti_proton    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               hBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+hPairProd:   for  anti_proton    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 9x1001; from 7.50618 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+           hPairProd :  Emin=        0 eV    Emax=        1 TeV
+
+nuclearStopping:   for  anti_proton    SubType= 8  BuildTable= 0
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+   ICRU49NucStopping :  Emin=        0 eV    Emax=        1 MeV
+
+msc:   for kaon+    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+hIoni:   for  kaon+    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               Bragg :  Emin=        0 eV    Emax=  1.05231 MeV   deltaVI
+          BetheBloch :  Emin=  1.05231 MeV   Emax=        1 TeV   deltaVI
+
+hBrems:   for  kaon+    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               hBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+hPairProd:   for  kaon+    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 10x1001; from 3.94942 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+           hPairProd :  Emin=        0 eV    Emax=        1 TeV
+
+msc:   for kaon-    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+hIoni:   for  kaon-    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            ICRU73QO :  Emin=        0 eV    Emax=  1.05231 MeV   deltaVI
+          BetheBloch :  Emin=  1.05231 MeV   Emax=        1 TeV   deltaVI
+
+hBrems:   for  kaon-    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               hBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+hPairProd:   for  kaon-    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 10x1001; from 3.94942 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+           hPairProd :  Emin=        0 eV    Emax=        1 TeV
+
+msc:   for mu+    SubType= 10
+      RangeFactor= 0.2, step limit type: 0, lateralDisplacement: 1, polarAngleLimit(deg)= 180
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+        WentzelVIUni :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+muIoni:   for  mu+    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               Bragg :  Emin=        0 eV    Emax=      200 keV   deltaVI
+          BetheBloch :  Emin=      200 keV   Emax=        1 GeV   deltaVI
+        MuBetheBloch :  Emin=        1 GeV   Emax=        1 TeV
+
+muBrems:   for  mu+    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+              MuBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+muPairProd:   for  mu+    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 13x1001; from 1 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+          muPairProd :  Emin=        0 eV    Emax=        1 TeV
+
+CoulombScat:   for  mu+, integral: 1     SubType= 1  BuildTable= 1
+      Lambda table from threshold  to 1 TeV, 20 bins per decade, spline: 1
+      ThetaMin(p) < Theta(degree) < 180; pLimit(GeV^1)= 0.139531
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+  eCoulombScattering :  Emin=        0 eV    Emax=        1 TeV
+
+msc:   for mu-    SubType= 10
+      RangeFactor= 0.2, step limit type: 0, lateralDisplacement: 1, polarAngleLimit(deg)= 180
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+        WentzelVIUni :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+muIoni:   for  mu-    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            ICRU73QO :  Emin=        0 eV    Emax=      200 keV   deltaVI
+          BetheBloch :  Emin=      200 keV   Emax=        1 GeV   deltaVI
+        MuBetheBloch :  Emin=        1 GeV   Emax=        1 TeV
+
+muBrems:   for  mu-    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+              MuBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+muPairProd:   for  mu-    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 13x1001; from 1 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+          muPairProd :  Emin=        0 eV    Emax=        1 TeV
+
+CoulombScat:   for  mu-, integral: 1     SubType= 1  BuildTable= 1
+      Lambda table from threshold  to 1 TeV, 20 bins per decade, spline: 1
+      ThetaMin(p) < Theta(degree) < 180; pLimit(GeV^1)= 0.139531
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+  eCoulombScattering :  Emin=        0 eV    Emax=        1 TeV
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/8_17_Oxygen
+NeutronHP: /Elastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/8_17_Oxygen
+NeutronHP: /Inelastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/8_17_Oxygen
+NeutronHP: /Capture file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Inelastic file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Inelastic file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Inelastic file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/8_17_Oxygen
+NeutronHP: /Elastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/8_17_Oxygen
+NeutronHP: /Inelastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/8_17_Oxygen
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Inelastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/8_17_Oxygen
+NeutronHP: /Elastic file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/11_22_Sodium
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/8_17_Oxygen
+NeutronHP: /Elastic file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+NeutronHP: /Elastic file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Elastic/CrossSection/6_nat_Carbon
+@@@ G4ParticleHPInelastic instantiated for particle neutron data directory variable is G4NEUTRONHPDATA pointing to /home/admin/geant4.10.04-build/data/G4NDL4.5/Inelastic
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/8_17_Oxygen
+NeutronHP: /Capture file for Z = 10, A = 20 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 10, A = 21 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 10, A = 22 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/11_22_Sodium
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 8, A = 18 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/8_17_Oxygen
+NeutronHP: /Capture file for Z = 6, A = 12 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+NeutronHP: /Capture file for Z = 6, A = 13 is not found and NeutronHP will use /home/admin/geant4.10.04-build/data/G4NDL4.5/Capture/CrossSection/6_nat_Carbon
+
+msc:   for pi+    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+hIoni:   for  pi+    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               Bragg :  Emin=        0 eV    Emax=  297.505 keV   deltaVI
+          BetheBloch :  Emin=  297.505 keV   Emax=        1 TeV   deltaVI
+
+hBrems:   for  pi+    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               hBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+hPairProd:   for  pi+    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 12x1001; from 1.11656 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+           hPairProd :  Emin=        0 eV    Emax=        1 TeV
+
+msc:   for pi-    SubType= 10
+      RangeFactor= 0.2, stepLimitType: 0, latDisplacement: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            UrbanMsc :  Emin=        0 eV    Emax=        1 TeV  Table with 200 bins Emin=    100 eV    Emax=      1 TeV
+
+hIoni:   for  pi-    SubType= 2
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      finalRange(mm)= 0.05, dRoverRange= 0.2, integral: 1, fluct: 1, linLossLimit= 0.01
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+            ICRU73QO :  Emin=        0 eV    Emax=  297.505 keV   deltaVI
+          BetheBloch :  Emin=  297.505 keV   Emax=        1 TeV   deltaVI
+
+hBrems:   for  pi-    SubType= 3
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+               hBrem :  Emin=        0 eV    Emax=        1 TeV
+      ===== Limit on energy threshold has been applied 
+
+hPairProd:   for  pi-    SubType= 4
+      dE/dx and range tables from 100 eV  to 1 TeV in 200 bins
+      Lambda tables from threshold to 1 TeV, 20 bins per decade, spline: 1
+      Sampling table 12x1001; from 1.11656 GeV to 1 TeV 
+      ===== EM models for the G4Region  DefaultRegionForTheWorld ======
+           hPairProd :  Emin=        0 eV    Emax=        1 TeV
+=======================================================================
+======       Radioactive Decay Physics Parameters              ========
+=======================================================================
+Max life time                                     1e+15 ps
+Internal e- conversion flag                       1
+Stored internal conversion coefficients           0
+Enable correlated gamma emission                  0
+Max 2J for sampling of angular correlations       10
+Atomic de-excitation enabled                      1
+Auger electron emission enabled                   1
+Auger cascade enabled                             1
+Check EM cuts disabled for atomic de-excitation   0
+Use Bearden atomic level energies                 0
+=======================================================================
+
+====================================================================
+                  HADRONIC PROCESSES SUMMARY (verbose level 1)
+
+---------------------------------------------------
+                           Hadronic Processes for GenericIon
+
+  Process: ionInelastic
+        Model:  Binary Light Ion Cascade: 0 eV /n ---> 4 GeV/n
+        Model:                      FTFP: 2 GeV/n ---> 100 TeV/n
+     Cr_sctns: Glauber-Gribov nucleus nucleus: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for He3
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns: Glauber-Gribov nucleus nucleus: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: He3Inelastic
+        Model:  Binary Light Ion Cascade: 0 eV /n ---> 4 GeV/n
+        Model:                      FTFP: 2 GeV/n ---> 100 TeV/n
+     Cr_sctns: Glauber-Gribov nucleus nucleus: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for alpha
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: alphaInelastic
+        Model:  Binary Light Ion Cascade: 0 eV /n ---> 4 GeV/n
+        Model:                      FTFP: 2 GeV/n ---> 100 TeV/n
+     Cr_sctns: Glauber-Gribov nucleus nucleus: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for anti_He3
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100.1 MeV/n
+        Model:              AntiAElastic: 100 MeV/n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: anti_He3Inelastic
+        Model:                      FTFP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: hFritiofCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for anti_alpha
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100.1 MeV/n
+        Model:              AntiAElastic: 100 MeV/n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: anti_alphaInelastic
+        Model:                      FTFP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: hFritiofCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for anti_deuteron
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100.1 MeV/n
+        Model:              AntiAElastic: 100 MeV/n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: anti_deuteronInelastic
+        Model:                      FTFP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: hFritiofCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for anti_neutron
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV  ---> 100 TeV
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: anti_neutronInelastic
+        Model:                      FTFP: 0 eV  ---> 100 TeV
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for anti_proton
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV  ---> 100.1 MeV
+        Model:              AntiAElastic: 100 MeV ---> 100 TeV
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: anti_protonInelastic
+        Model:                      FTFP: 0 eV  ---> 100 TeV
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: hFritiofCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for anti_triton
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100.1 MeV/n
+        Model:              AntiAElastic: 100 MeV/n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: anti_tritonInelastic
+        Model:                      FTFP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:              AntiAGlauber: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: hFritiofCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for deuteron
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: dInelastic
+        Model:  Binary Light Ion Cascade: 0 eV /n ---> 4 GeV/n
+        Model:                      FTFP: 2 GeV/n ---> 100 TeV/n
+     Cr_sctns: Glauber-Gribov nucleus nucleus: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for e+
+
+  Process: positronNuclear
+        Model:   G4ElectroVDNuclearModel: 0 eV  ---> 1 PeV
+     Cr_sctns:          ElectroNuclearXS: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for e-
+
+  Process: electronNuclear
+        Model:   G4ElectroVDNuclearModel: 0 eV  ---> 1 PeV
+     Cr_sctns:          ElectroNuclearXS: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for gamma
+
+  Process: photonNuclear
+        Model:            BertiniCascade: 0 eV  ---> 3.5 GeV
+        Model:           TheoFSGenerator: 3 GeV ---> 100 TeV
+     Cr_sctns:            PhotoNuclearXS: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for kaon+
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV  ---> 100 TeV
+     Cr_sctns:            Glauber-Gribov: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: kaon+Inelastic
+        Model:                      QGSP: 12 GeV ---> 100 TeV
+        Model:                      FTFP: 9.5 GeV ---> 25 GeV
+        Model:            BertiniCascade: 0 eV  ---> 9.9 GeV
+     Cr_sctns:            Glauber-Gribov: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:  ChipsKaonPlusInelasticXS: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for kaon-
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV  ---> 100 TeV
+     Cr_sctns:            Glauber-Gribov: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: kaon-Inelastic
+        Model:                      QGSP: 12 GeV ---> 100 TeV
+        Model:                      FTFP: 9.5 GeV ---> 25 GeV
+        Model:            BertiniCascade: 0 eV  ---> 9.9 GeV
+     Cr_sctns:            Glauber-Gribov: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns: ChipsKaonMinusInelasticXS: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: hBertiniCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for lambda
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV  ---> 100 TeV
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: lambdaInelastic
+        Model:            BertiniCascade: 0 eV  ---> 6 GeV
+        Model:                      FTFP: 2 GeV ---> 100 TeV
+     Cr_sctns:   ChipsHyperonInelasticXS: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for mu+
+
+  Process: muonNuclear
+        Model:      G4MuonVDNuclearModel: 0 eV  ---> 1 PeV
+     Cr_sctns:     KokoulinMuonNuclearXS: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for mu-
+
+  Process: muonNuclear
+        Model:      G4MuonVDNuclearModel: 0 eV  ---> 1 PeV
+     Cr_sctns:     KokoulinMuonNuclearXS: 0 eV  ---> 100 TeV
+
+  Process: muMinusCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for neutron
+
+  Process: hadElastic
+        Model:             hElasticCHIPS: 19.5 MeV ---> 100 TeV
+        Model:          NeutronHPElastic: 0 eV  ---> 20 MeV
+     Cr_sctns:        NeutronHPElasticXS: 0 eV  ---> 20 MeV
+     Cr_sctns:        G4NeutronElasticXS: 0 eV  ---> 100 TeV
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: neutronInelastic
+        Model:                      QGSP: 12 GeV ---> 100 TeV
+        Model:                      FTFP: 9.5 GeV ---> 25 GeV
+        Model:            BertiniCascade: 19.9 MeV ---> 9.9 GeV
+        Model:        NeutronHPInelastic: 0 eV  ---> 20 MeV
+     Cr_sctns:      NeutronHPInelasticXS: 0 eV  ---> 20 MeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: nCapture
+        Model:          NeutronHPCapture: 0 eV  ---> 20 MeV
+        Model:               nRadCapture: 19.9 MeV ---> 100 TeV
+     Cr_sctns:        NeutronHPCaptureXS: 0 eV  ---> 20 MeV
+     Cr_sctns:        G4NeutronCaptureXS: 0 eV  ---> 100 TeV
+     Cr_sctns:        NeutronHPCaptureXS: 0 eV  ---> 20 MeV
+     Cr_sctns:          GheishaCaptureXS: 0 eV  ---> 100 TeV
+
+  Process: nFission
+        Model:          NeutronHPFission: 0 eV  ---> 20 MeV
+        Model:                G4LFission: 19.9 MeV ---> 2.88022e+295 J  
+     Cr_sctns:        NeutronHPFissionXS: 0 eV  ---> 20 MeV
+     Cr_sctns:          GheishaFissionXS: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for pi+
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV  ---> 1.0001 GeV
+        Model:           hElasticGlauber: 1 GeV ---> 100 TeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: pi+Inelastic
+        Model:                      QGSP: 12 GeV ---> 100 TeV
+        Model:                      FTFP: 9.5 GeV ---> 25 GeV
+        Model:            BertiniCascade: 0 eV  ---> 9.9 GeV
+     Cr_sctns:      G4CrossSectionPairGG: 0 eV  ---> 100 TeV
+                         G4CrossSectionPairGG: G4PiNuclearCrossSection cross sections 
+                           below 91 GeV, Glauber-Gribov above 
+     Cr_sctns:      G4CrossSectionPairGG: 0 eV  ---> 100 TeV
+                         G4CrossSectionPairGG: G4PiNuclearCrossSection cross sections 
+                           below 91 GeV, Glauber-Gribov above 
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for pi-
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV  ---> 1.0001 GeV
+        Model:           hElasticGlauber: 1 GeV ---> 100 TeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: pi-Inelastic
+        Model:                      QGSP: 12 GeV ---> 100 TeV
+        Model:                      FTFP: 9.5 GeV ---> 25 GeV
+        Model:            BertiniCascade: 0 eV  ---> 9.9 GeV
+     Cr_sctns:      G4CrossSectionPairGG: 0 eV  ---> 100 TeV
+                         G4CrossSectionPairGG: G4PiNuclearCrossSection cross sections 
+                           below 91 GeV, Glauber-Gribov above 
+     Cr_sctns:      G4CrossSectionPairGG: 0 eV  ---> 100 TeV
+                         G4CrossSectionPairGG: G4PiNuclearCrossSection cross sections 
+                           below 91 GeV, Glauber-Gribov above 
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+  Process: hBertiniCaptureAtRest
+
+---------------------------------------------------
+                           Hadronic Processes for proton
+
+  Process: hadElastic
+        Model:             hElasticCHIPS: 0 eV  ---> 100 TeV
+     Cr_sctns:      ChipsProtonElasticXS: 0 eV  ---> 100 TeV
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: protonInelastic
+        Model:                      QGSP: 12 GeV ---> 100 TeV
+        Model:                      FTFP: 9.5 GeV ---> 25 GeV
+        Model:            BertiniCascade: 0 eV  ---> 9.9 GeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:       Barashenkov-Glauber: 0 eV  ---> 100 TeV
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+---------------------------------------------------
+                           Hadronic Processes for triton
+
+  Process: hadElastic
+        Model:              hElasticLHEP: 0 eV /n ---> 100 TeV/n
+     Cr_sctns:            GheishaElastic: 0 eV  ---> 100 TeV
+
+  Process: tInelastic
+        Model:  Binary Light Ion Cascade: 0 eV /n ---> 4 GeV/n
+        Model:                      FTFP: 2 GeV/n ---> 100 TeV/n
+     Cr_sctns: Glauber-Gribov nucleus nucleus: 0 eV  ---> 2.88022e+295 J  
+     Cr_sctns:          GheishaInelastic: 0 eV  ---> 100 TeV
+
+================================================================
+=======================================================================
+======       Pre-compound/De-excitation Physics Parameters     ========
+=======================================================================
+Type of pre-compound inverse x-section              3
+Pre-compound model active                           1
+Pre-compound low energy (MeV)                       0.1
+Type of de-excitation inverse x-section             3
+Type of de-excitation factory                       Evaporation
+Number of de-excitation channels                    8
+Min excitation energy (keV)                         0.01
+Min energy per nucleon for multifragmentation (MeV) 1e+05
+Level density (1/MeV)                               0.1
+Time limit for long lived isomeres (ns)             1e+12
+Internal e- conversion flag                         1
+Store e- internal conversion data                   0
+Electron internal conversion ID                     2
+Correlated gamma emission flag                      0
+Max 2J for sampling of angular correlations         10
+=======================================================================
+
+========= Table of registered couples ==============================
+
+Index : 0     used in the geometry : Yes
+ Material : Air
+ Range cuts        :  gamma  5 um     e-  500 nm     e+  500 nm  proton 100 um 
+ Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 10 keV
+ Region(s) which use this couple : 
+    DefaultRegionForTheWorld
+
+Index : 1     used in the geometry : Yes
+ Material : Argon-Liq
+ Range cuts        :  gamma  5 um     e-  500 nm     e+  500 nm  proton 100 um 
+ Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 10 keV
+ Region(s) which use this couple : 
+    DefaultRegionForTheWorld
+
+Index : 2     used in the geometry : Yes
+ Material : Rock
+ Range cuts        :  gamma  5 um     e-  500 nm     e+  500 nm  proton 100 um 
+ Energy thresholds :  gamma  250 eV     e-  324.031 eV     e+  318.381 eV  proton 10 keV
+ Region(s) which use this couple : 
+    DefaultRegionForTheWorld
+
+Index : 3     used in the geometry : Yes
+ Material : Steel
+ Range cuts        :  gamma  5 um     e-  500 nm     e+  500 nm  proton 100 um 
+ Energy thresholds :  gamma  1.29957 keV    e-  1.84363 keV    e+  1.80675 keV proton 10 keV
+ Region(s) which use this couple : 
+    DefaultRegionForTheWorld
+
+Index : 4     used in the geometry : Yes
+ Material : Argon
+ Range cuts        :  gamma  5 um     e-  500 nm     e+  500 nm  proton 100 um 
+ Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 10 keV
+ Region(s) which use this couple : 
+    DefaultRegionForTheWorld
+
+Index : 5     used in the geometry : Yes
+ Material : Glass
+ Range cuts        :  gamma  5 um     e-  500 nm     e+  500 nm  proton 100 um 
+ Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 10 keV
+ Region(s) which use this couple : 
+    DefaultRegionForTheWorld
+
+Index : 6     used in the geometry : Yes
+ Material : TPB
+ Range cuts        :  gamma  5 um     e-  500 nm     e+  500 nm  proton 100 um 
+ Energy thresholds :  gamma  250 eV     e-  250 eV     e+  250 eV  proton 10 keV
+ Region(s) which use this couple : 
+    DefaultRegionForTheWorld
+
+====================================================================
+
+[32mRoutine[m:[1msrc/MGOutputRoot.cc(73)[0m:  Opened ROOT file for event data: cosmicSurfMuons.root
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(408)[0m: defining MGOutputMCOpticalRun schema...
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(287)[0m: this geometry has 12 volumes
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 0: lab, 0x1b0e280
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 1: airSpace, 0x1b0e980
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 2: cryostat, 0x1b19280
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 3: argonGasPhysical, 0x1b195e0
+Warning at MGMCRun.cc:66 - the volume argonGasPhysical has already been set
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(357)[0m: Added sensitive volume argonGasPhysical with ID 202
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 4: physicalPMT_0, 0x1b1a790
+Warning at MGMCRun.cc:66 - the volume physicalPMT_0 has already been set
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(357)[0m: Added sensitive volume physicalPMT_0 with ID 100
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 5: physicalPMT_1, 0x1b1a800
+Warning at MGMCRun.cc:66 - the volume physicalPMT_1 has already been set
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(357)[0m: Added sensitive volume physicalPMT_1 with ID 101
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 6: physicalHousingPMT_0, 0x1b1f310
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 7: physicalHousingPMT_1, 0x1b1f3c0
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 8: physicalWLS_0, 0x1b1f6e0
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 9: physicalWLS_1, 0x1b1f810
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 10: World, 0x1b21170
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(292)[0m: volume 11: Detector, 0x1b211e0
+Warning at MGMCRun.cc:66 - the volume Detector has already been set
+[32mRoutine[m:[1msrc/MGOutputMCOpticalRun.cc(357)[0m: Added sensitive volume Detector with ID 201
+OBJ: MGTMCRun	MGTMCRun	MC run-level info
+[32mRoutine[m:[1msrc/MGManagementRunAction.cc(124)[0m: No pre-waveform output specified.
+[32mRoutine[m:[1msrc/MGManagementRunAction.cc(143)[0m: Run #0 started at GMT Wed Mar 13 22:09:43 2019
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 0 at 0 seconds (real time), at the moment it is: 3.13.2019, 16:9:43
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Warning at MGTMCEventSteps.cc:142 - Reached max number of steps for storage. Please increase max number of steps
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1567049408
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=1
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 1 at 96 seconds (real time), at the moment it is: 3.13.2019, 16:11:19
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-2136857691
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=2
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 2 at 173 seconds (real time), at the moment it is: 3.13.2019, 16:12:36
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 3 at 182 seconds (real time), at the moment it is: 3.13.2019, 16:12:45
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1794013314
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=4
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 4 at 270 seconds (real time), at the moment it is: 3.13.2019, 16:14:13
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1825614747
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=5
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 5 at 358 seconds (real time), at the moment it is: 3.13.2019, 16:15:41
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 6 at 376 seconds (real time), at the moment it is: 3.13.2019, 16:15:59
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 7 at 381 seconds (real time), at the moment it is: 3.13.2019, 16:16:4
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 8 at 389 seconds (real time), at the moment it is: 3.13.2019, 16:16:12
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 9 at 405 seconds (real time), at the moment it is: 3.13.2019, 16:16:28
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 10 at 407 seconds (real time), at the moment it is: 3.13.2019, 16:16:30
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 11 at 434 seconds (real time), at the moment it is: 3.13.2019, 16:16:57
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 12 at 438 seconds (real time), at the moment it is: 3.13.2019, 16:17:1
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 13 at 454 seconds (real time), at the moment it is: 3.13.2019, 16:17:17
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1717332461
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=15
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 14 at 548 seconds (real time), at the moment it is: 3.13.2019, 16:18:51
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1770996308
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=16
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 15 at 637 seconds (real time), at the moment it is: 3.13.2019, 16:20:20
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 16 at 640 seconds (real time), at the moment it is: 3.13.2019, 16:20:23
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 17 at 647 seconds (real time), at the moment it is: 3.13.2019, 16:20:30
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 18 at 653 seconds (real time), at the moment it is: 3.13.2019, 16:20:36
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 19 at 671 seconds (real time), at the moment it is: 3.13.2019, 16:20:54
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 20 at 676 seconds (real time), at the moment it is: 3.13.2019, 16:20:59
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 21 at 680 seconds (real time), at the moment it is: 3.13.2019, 16:21:3
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 22 at 687 seconds (real time), at the moment it is: 3.13.2019, 16:21:10
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 23 at 690 seconds (real time), at the moment it is: 3.13.2019, 16:21:13
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 24 at 693 seconds (real time), at the moment it is: 3.13.2019, 16:21:16
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-2017764824
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=26
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 25 at 772 seconds (real time), at the moment it is: 3.13.2019, 16:22:35
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 26 at 775 seconds (real time), at the moment it is: 3.13.2019, 16:22:38
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 27 at 814 seconds (real time), at the moment it is: 3.13.2019, 16:23:17
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 28 at 831 seconds (real time), at the moment it is: 3.13.2019, 16:23:34
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1303789798
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=31
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 29 at 940 seconds (real time), at the moment it is: 3.13.2019, 16:25:23
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 30 at 942 seconds (real time), at the moment it is: 3.13.2019, 16:25:25
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 31 at 946 seconds (real time), at the moment it is: 3.13.2019, 16:25:29
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 32 at 1025 seconds (real time), at the moment it is: 3.13.2019, 16:26:48
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 33 at 1027 seconds (real time), at the moment it is: 3.13.2019, 16:26:50
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 34 at 1038 seconds (real time), at the moment it is: 3.13.2019, 16:27:1
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 35 at 1040 seconds (real time), at the moment it is: 3.13.2019, 16:27:3
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 36 at 1045 seconds (real time), at the moment it is: 3.13.2019, 16:27:8
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 37 at 1104 seconds (real time), at the moment it is: 3.13.2019, 16:28:7
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1792177158
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=40
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 38 at 1192 seconds (real time), at the moment it is: 3.13.2019, 16:29:35
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 39 at 1194 seconds (real time), at the moment it is: 3.13.2019, 16:29:37
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+Error in <TBranchElement::Fill>: Failed filling branch:eventSteps.fSteps, nbytes=-1719517769
+Error in <TTree::Fill>: Failed filling branch:fTree.eventSteps, nbytes=-1, entry=42
+ This error is symptomatic of a Tree created as a memory-resident Tree
+ Instead of doing:
+    TTree *T = new TTree(...)
+    TFile *f = new TFile(...)
+ you should do:
+    TFile *f = new TFile(...)
+    TTree *T = new TTree(...)
+
+
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 40 at 1285 seconds (real time), at the moment it is: 3.13.2019, 16:31:8
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 41 at 1290 seconds (real time), at the moment it is: 3.13.2019, 16:31:13
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 42 at 1363 seconds (real time), at the moment it is: 3.13.2019, 16:32:26
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 43 at 1368 seconds (real time), at the moment it is: 3.13.2019, 16:32:31
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 44 at 1373 seconds (real time), at the moment it is: 3.13.2019, 16:32:36
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 45 at 1377 seconds (real time), at the moment it is: 3.13.2019, 16:32:40
+Killing track for max Nstep...iStep 499999 fNSteps 500000
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 46 at 1381 seconds (real time), at the moment it is: 3.13.2019, 16:32:44
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 47 at 1407 seconds (real time), at the moment it is: 3.13.2019, 16:33:10
+[32mRoutine[m:[1msrc/MGManagementEventAction.cc(112)[0m:  Processing Event # 48 at 1419 seconds (real time), at the moment it is: 3.13.2019, 16:33:22
