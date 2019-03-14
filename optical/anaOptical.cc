@@ -76,7 +76,7 @@ int main(){
 
   cout<<"starting run"<<endl; 
   
-  for(int k = 0; k < 1e5 ; k++){
+  for(int k = 0; k < 1 ; k++){
     //TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden/MaGe/bin/Linux-g++/";
     //TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden/BACoN/bin/Linux-g++/";
     //TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden//LEGEND_200_One_FIBER_Array/";
@@ -84,14 +84,15 @@ int main(){
     //TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden/RooT/";
     //TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden/";
     //TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden/array/";
-    TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden/arrOpticalDist/";
+    //TString dir = "/mnt/mjdDisk1/Majorana/users/nmcfadden/arrOpticalDist/";
     //TString fileName = "SensitiveVolumesLGND_200Alt1" +to_string(k);
     //TString fileName = "SensitiveVolumesLGND_200Orig1.1mAttenuation" +to_string(k);
     //TString fileName = "SensitiveVolumesLGND_200Orig" +to_string(k);
     //TString fileName = "SensitiveVolumes" +to_string(k);
     //TString fileName = "SensitiveVolumesLGND_200Orig"+to_string(k);
     //TString fileName = "RDMiso224.88.Optical";
-    TString fileName = "ExteriorMap_"+to_string(k);
+    TString dir = "/home/nmcfadden/gitMaGe/MaGe/bin/Linux-g++/";
+    TString fileName = "SpeedTest.root";
     //TString fileName = "SpeedTest";
     cout<<"File location at: "<<dir+fileName+TString(".root");
     ///*
@@ -140,8 +141,7 @@ int main(){
       Double_t px = primaries->GetPx(),py = primaries->GetPy(),pz = primaries->GetPz();
       Double_t r = sqrt(x*x+y*y);
       Double_t theta = std::acos(x/r);
-      //bool hitSiPM = false; 
-      bool hitFiber = false;
+      bool hitSiPM = false,hitFiber = false;
       Int_t hitSiPMCounter = 0,hitFiberCounter = 0;
       if( y < 0) theta += 3.14159265359;
       for (Int_t j = 0; j < eventSteps->GetNSteps();j++){
@@ -149,7 +149,7 @@ int main(){
         physName = step->GetPhysVolName();
         //cout<<physName<<endl;
         if(physName.Contains("SiPM") && step->GetEdep() > 0 ){
-          //hitSiPM = true;
+          hitSiPM = true;
           hitSiPMCounter++;
           ntpleStepSiPM->Fill(i,j,step->GetEdep(),step->GetKineticE(),step->GetX(),step->GetY(),step->GetZ(),sqrt(step->GetX()*step->GetX() +step->GetY()*step->GetY()),step->GetT());
           ntpleSiPM->Fill(x,y,z,r,theta,px,py,pz,hitSiPMCounter);
