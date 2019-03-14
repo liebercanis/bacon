@@ -592,6 +592,13 @@ void MGOutputMCOpticalRun::RootSteppingAction(const G4Step* step)
   // Kill (anti)neutrinos regardless
   if(pid == -12 || pid == 12) step->GetTrack()->SetTrackStatus(fKillTrackAndSecondaries);
 
+  // Kill if beyond end of cryo
+  if( position.z()<-635){ 
+    G4cout<<"Killing track for large Z "<<iStep<<" z "<<fNSteps<<G4endl;
+    step->GetTrack()->SetTrackStatus(fKillTrackAndSecondaries);
+  }
+
+
   G4ThreeVector localPosition = step->GetPreStepPoint()->GetTouchableHandle()->GetHistory()->
   GetTopTransform().TransformPoint(position);
   if ( !fWriteAllSteps){
