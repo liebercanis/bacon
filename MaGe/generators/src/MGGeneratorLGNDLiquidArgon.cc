@@ -139,7 +139,7 @@ void MGGeneratorLGNDLiquidArgon::PositionDecider()
     fRadius = cryostat->GetCryostatID()/2.;
 
   delete cryostat;
-
+  //G4cout<<"fRadius "<<fRadius<<", fInnerHeight "<<fInnerHeight<<G4endl;
   G4ThreeVector rpos(1,1,1);
   G4bool isIn = false;
   int errorCounter = 0;
@@ -171,9 +171,26 @@ void MGGeneratorLGNDLiquidArgon::PositionDecider()
 
 G4bool MGGeneratorLGNDLiquidArgon::IsInArgon(G4ThreeVector rpos)
 {
-  bool isit = true;
+  bool isit = false;
   // list of all volumes
   G4PhysicalVolumeStore* theStore = G4PhysicalVolumeStore::GetInstance();
+  G4VPhysicalVolume *pVol = theStore->GetVolume("argonGasPhysical",false);
+  G4VSolid *solid = pVol->GetLogicalVolume()->GetSolid();
+  G4ThreeVector rtran  = pVol->GetTranslation();
+  G4ThreeVector rel = rpos - rtran; // point relative to center of solid
+  if(solid->Inside(rel)== EInside::kInside){
+    //G4cout<<"Found point in solid "<<solid->DistanceToOut(rpos)<<" "<<solid->DistanceToIn(rpos)<<" "<<pVol->GetName()<<" "<<rtran<<" "<<rpos<<" "<<rel<<G4endl;
+    isit=true;  
+  }
+  pVol = theStore->GetVolume("Detector",false);
+  solid = pVol->GetLogicalVolume()->GetSolid();
+  rtran  = pVol->GetTranslation();
+  rel = rpos - rtran; // point relative to center of solid
+  if(solid->Inside(rel)== EInside::kInside){
+    //G4cout<<"Found point in solid "<<solid->DistanceToOut(rpos)<<" "<<solid->DistanceToIn(rpos)<<" "<<pVol->GetName()<<" "<<rtran<<" "<<rpos<<" "<<rel<<G4endl;
+    isit=true;  
+  }
+  /*
   for(G4int istore = 0; istore< int(theStore->size()) ; ++istore ){
     G4VPhysicalVolume *pVol = theStore->at(istore);
     G4String sname = pVol->GetName();
@@ -181,18 +198,26 @@ G4bool MGGeneratorLGNDLiquidArgon::IsInArgon(G4ThreeVector rpos)
     if(sname == "World") continue;
     // if this is a volume to reject, see if it is inside
     G4String material = pVol->GetLogicalVolume()->GetMaterial()->GetName();
-    if( sname != "Detector"){
+    //if( sname != "Detector" && sname != "argonGasPhysical"){
+    if(sname != ""){
       G4VSolid *solid = pVol->GetLogicalVolume()->GetSolid();
       G4ThreeVector rtran  = pVol->GetTranslation();
       G4ThreeVector rel = rpos - rtran; // point relative to center of solid
       if(solid->Inside(rel)== EInside::kInside){
-        isit = false;
-        //Uncomment for debugging
-        //G4cout<<solid->DistanceToOut(rpos)<<" "<<solid->DistanceToIn(rpos)<<" "<<pVol->GetName()<<" "<<rtran<<" "<<rpos<<" "<<rel<<G4endl;
+        if(sname == "argonGasPhysical" || sname == "Detector"){
+          isit = true;
+          //G4cout<<"Found point in solid "<<solid->DistanceToOut(rpos)<<" "<<solid->DistanceToIn(rpos)<<" "<<pVol->GetName()<<" "<<rtran<<" "<<rpos<<" "<<rel<<G4endl;
+        }
+        else{
+          isit = false;
+          //Uncomment for debugging
+          //G4cout<<solid->DistanceToOut(rpos)<<" "<<solid->DistanceToIn(rpos)<<" "<<pVol->GetName()<<" "<<rtran<<" "<<rpos<<" "<<rel<<G4endl;
+        }
         break;
       }
     }
   }
+  */
   return isit;
 }
 
