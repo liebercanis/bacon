@@ -1,6 +1,6 @@
 /* MG revised */
 #include "anaRun.hh"
-
+#include <TFitResult.h>
 anaRun::anaRun(TString tag, Int_t maxEvents)
 {
   bool debug=false;
@@ -41,10 +41,10 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   //ntBase = new TNtuple("ntBase","base","iw:w:b:bnon:bneil:width");
   TNtuple *ntMatchTime = new TNtuple("ntMatchTime"," match time ","ihit:dt");
   ntCal =  new TNtuple("ntCal","ntuple Cal","iev:ipmt:base:sigma:dbase:dsigma");
-  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:q:qerr:nwidth:peak:good:kind");
+  ntHit = new TNtuple("ntHit","ntuple Hit","npmt:nhits:order:istart:time:thit:q:qerr:nwidth:peak:good:kind");
   ntNHit = new TNtuple("ntNHit","negative ntuple Hit","npmt:nhits:order:istart:time:q:nwidth:peak:good:kind");
   ntDer =  new TNtuple("ntDer"," deriviative ","t:sigma:d0:kover:type");
-  ntEvent= new TNtuple("ntEvent","ntuple Event","entry:n0:n1:t00:t01:t10:t11:qp0:qp1:q00:q01:q10:q11:qsum0:qsum1");
+  ntEvent= new TNtuple("ntEvent","ntuple Event","entry:n0:nspe0:qsum0:qsum1:qsum3:qspe0");
   ntPulse= new TNtuple("ntPulse"," pulse ","sum:shigh:slow:nsamp:kover:qlow:qhigggh:klow:khigh");
   ntWave = new TNtuple("ntWave"," wave ","event:v:d");
 
@@ -90,7 +90,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   // get pmtTree from file 
   fin->GetObject("pmtTree",pmtTree);
   Long64_t nentries = pmtTree->GetEntries();
-  printf(" number of entries is %lld derivative smoothing = %i \n",nentries,windowSize);
 
   // set up memory for reading
   pmtEvent = new TPmtEvent();
@@ -125,13 +124,18 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   Float_t qpmt[NPMT][MAXHIT];
   Float_t tpmt[NPMT][MAXHIT];
   Int_t   npmtHit[NPMT];
+  Int_t   nspe[NPMT];
+  Double_t qspe[NPMT];
   Double_t qsum[NPMT];
+  Double_t qsum1[NPMT];
+  Double_t qsum3[NPMT];
   Double_t qped[NPMT];
   Int_t nped[NPMT];
   Int_t totalHits[NPMT]={0,0};
 
   // loop over entries
   if(maxEvents>0) nentries=maxEvents;
+  printf(" STARTING RUN %s with  events  %lld of %lld derivative smoothing = %i \n",tag.Data(),nentries,pmtTree->GetEntries(),windowSize);
   for (UInt_t ientry=0; ientry<nentries; ientry++) {
     pmtTree->GetEntry(ientry);
     if(pmtEvent->time.size() == 0) continue;
@@ -140,7 +144,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       npmtHit[ipmt]=0;
       qped[ipmt]=0;
       qsum[ipmt]=0;
+      qsum1[ipmt]=0;
+      qsum3[ipmt]=0;
       nped[ipmt]=0;
+      nspe[ipmt]=0;
+      qspe[ipmt]=0;
       for(int ihit=0; ihit<MAXHIT ; ++ihit) {
         qpmt[ipmt][ihit]=0;
         tpmt[ipmt][ihit]=0;
@@ -174,6 +182,20 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
         ntSimMatch = new TNtuple("ntSimMatch"," hit matches ","pmt:nsim:nhit:match:nnot:nmiss");
       }
       for(int ipmt=0; ipmt<gotPMT; ++ipmt) {
+
+        hSPE[ipmt] = new TH1D(Form("SPE%i",ipmt),Form(" SPE charge PMT %i ",ipmt),500,0,.5);
+        hSPE[ipmt]->GetXaxis()->SetTitle(" charge*bin (ADC-ns) ");
+
+
+        hQSum[ipmt] = new TH1D(Form("QSum%i",ipmt),Form(" sum charge PMT %i ",ipmt),1500,0,10);
+        hQSum[ipmt]->GetXaxis()->SetTitle(" charge ");
+
+        hQEarly[ipmt] = new TH1D(Form("QEarly%i",ipmt),Form(" sum charge PMT %i ",ipmt),1500,0,10);
+        hQEarly[ipmt]->GetXaxis()->SetTitle(" charge ");
+
+        hQLate[ipmt] = new TH1D(Form("QLate%i",ipmt),Form(" sum charge PMT %i ",ipmt),1500,0,10);
+        hQLate[ipmt]->GetXaxis()->SetTitle(" charge ");
+
         hNoise[ipmt] = new TH1D(Form("Noise%i_%s",ipmt,tag.Data()),"",1000,0,.1);
 
         hPMTRaw[ipmt] = new TH1D(Form("PMTRaw%i_%s",ipmt,tag.Data()),"",nSamples,pmtXLow,pmtXHigh);
@@ -227,6 +249,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       fFFT = TVirtualFFT::FFT(1, &nSamples, "R2C M K");
       fInverseFFT = TVirtualFFT::FFT(1, &nSamples, "C2R M K");
     }
+
 
     //outfile->ls();
 
@@ -327,11 +350,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
 
       Double_t minDev = 0*sDev[pmtNum];
       Double_t maxDev = fsigma*sDev[pmtNum];
-      Double_t firstTime, firstCharge;
-      hitMap  pmtHits = makeHits(peakList,peakKind,sddigi[pmtNum],sDev[pmtNum],firstTime,firstCharge);
+      Double_t triggerTime, firstCharge;
+      hitMap  pmtHits = makeHits(peakList,peakKind,sddigi[pmtNum],sDev[pmtNum],triggerTime,firstCharge);
       // negative pulses
-      Double_t nfirstTime, nfirstCharge;
-      hitMap  npmtHits = makeHits(npeakList,npeakKind, ndigi[pmtNum],sDev[pmtNum],nfirstTime,nfirstCharge);
+      Double_t ntriggerTime, nfirstCharge;
+      hitMap  npmtHits = makeHits(npeakList,npeakKind, ndigi[pmtNum],sDev[pmtNum],ntriggerTime,nfirstCharge);
 
       for(unsigned iw=0; iw< weight.size(); ++iw) {
         //ntBase->Fill(float(iw),weight[iw],baserec[iw],basenon[iw],baselineDigi[pmtNum][iw],float(maxwidth));
@@ -380,11 +403,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       //if(nwidth0>20) continue;
 
 
-      hQFirst->Fill(firstTime,firstCharge);
+      hQFirst->Fill(triggerTime,firstCharge);
       //if(firstCharge<firstChargeCut&&phit0.qsum>firstChargeCut) 
-      if(firstTime==1E9&&phit0.qsum>firstChargeCut) 
+      if(triggerTime==1E9&&phit0.qsum>firstChargeCut) 
         printf(" WARNING NO FIRST PULSE event %i  pmt %i pulses %i qhit %f time %f first %f charge %f \n",
-            ientry,pmtNum,nhits,phit0.qsum,phit0.startTime*microSec,firstTime,firstCharge);
+            ientry,pmtNum,nhits,phit0.qsum,phit0.startTime*microSec,triggerTime,firstCharge);
 
    
       /* ******compare hits and simulation*******
@@ -459,30 +482,40 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       if(debug) printf(" event %u \n",ientry);
       for (hitMapIter hitIter=pmtHits.begin(); hitIter!=pmtHits.end(); ++hitIter) {
         TPmtHit phiti = hitIter->second;
-        Double_t phitTime =  phiti.startTime*microSec-firstTime; 
-        if(debug) printf(" hit %i time %f q %f good %i \n  ",hitCount, phiti.startTime*microSec, phiti.qsum/.05,phiti.good);
-        hQStart->Fill(phitTime,phiti.qsum);
+        Double_t phitTime =  phiti.startTime*microSec-triggerTime;
+        Double_t phitQ = phiti.qsum*timeUnit*1E9;
+        Double_t phitQErr = phiti.qerr*timeUnit*1E9;
+        if(debug) printf(" hit %i time %f q %f good %i \n  ",hitCount, phiti.startTime*microSec, phitQ,phiti.good);
+        hQStart->Fill(phitTime,phitQ);
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
         Int_t istartBin =  hLife[pmtNum]->FindBin(phitTime); 
-        qsum[pmtNum] += phiti.qsum;
-        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phiti.qsum,phiti.qerr,nwidth,phiti.qpeak,phiti.good,phiti.kind);
-        hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+        qsum[pmtNum] += phitQ;
+        if(phitTime>speTimeCut) {
+          hSPE[pmtNum]->Fill(phitQ);
+          ++nspe[pmtNum];
+          qspe[pmtNum] += phitQ;
+          qsum3[pmtNum] += phitQ;
+        } else {
+          qsum1[pmtNum] += phitQ;
+        }
+        ntHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phitTime,phitQ,phitQErr,nwidth,phiti.qpeak,phiti.good,phiti.kind);
+        hLife[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phitQ);
         hLife[pmtNum]->SetBinError(istartBin, sqrt( pow(hLife[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
-        //if(phiti.qsum>lifeChargeCut) {
+        //if(phitQ>lifeChargeCut) {
         if(phiti.kind==0) {
-          hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+          hLifeCut[pmtNum]->SetBinContent( istartBin, hLife[pmtNum]->GetBinContent(istartBin)+phitQ);
           hLifeCut[pmtNum]->SetBinError(istartBin, sqrt( pow(hLifeCut[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
           hLifeCount[pmtNum]->Fill( phitTime );
         }
 
         if(isSimulation) {
           if( phiti.good>0 ) {
-            hLifeSim[pmtNum]->SetBinContent( istartBin, hLifeSim[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+            hLifeSim[pmtNum]->SetBinContent( istartBin, hLifeSim[pmtNum]->GetBinContent(istartBin)+phitQ);
             hLifeSim[pmtNum]->SetBinError(istartBin, sqrt( pow(hLifeSim[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
 
           }
           else {
-            hLifeNoise[pmtNum]->SetBinContent( istartBin, hLifeNoise[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+            hLifeNoise[pmtNum]->SetBinContent( istartBin, hLifeNoise[pmtNum]->GetBinContent(istartBin)+phitQ);
             hLifeNoise[pmtNum]->SetBinError(istartBin, sqrt( pow(hLifeNoise[pmtNum]->GetBinError(istartBin),2)+pow(phiti.qerr,2) ));
 
           }
@@ -524,17 +557,19 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
       hitCount=0;
       for (hitMapIter nhitIter=npmtHits.begin(); nhitIter!=npmtHits.end(); ++nhitIter) {
         TPmtHit phiti = nhitIter->second;
+        Double_t phitQ = phiti.qsum*timeUnit*1E9;
+        //Double_t phitQErr = phiti.qerr*timeUnit*1E9;
         Int_t nwidth = phiti.lastBin - phiti.firstBin +1;
-        Double_t phitTime =  phiti.startTime*microSec-nfirstTime;
-        hNegQStart->Fill(phitTime,phiti.qsum);
+        Double_t phitTime =  phiti.startTime*microSec-ntriggerTime;
+        hNegQStart->Fill(phitTime,phitQ);
         Int_t istartBin =  hNLife[pmtNum]->FindBin(phitTime);
-        ntNHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phiti.qsum,nwidth,phiti.qpeak,phiti.good,phiti.kind);
-        hNLife[pmtNum]->SetBinContent( istartBin, hNLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
-        if(phiti.qsum>lifeChargeCut) hNLifeCut[pmtNum]->SetBinContent( istartBin, hNLife[pmtNum]->GetBinContent(istartBin)+phiti.qsum);
+        ntNHit->Fill(pmtNum,nhits,hitCount,istartBin, phiti.startTime*microSec,phitQ,nwidth,phiti.qpeak,phiti.good,phiti.kind);
+        hNLife[pmtNum]->SetBinContent( istartBin, hNLife[pmtNum]->GetBinContent(istartBin)+phitQ);
+        if(phitQ>lifeChargeCut) hNLifeCut[pmtNum]->SetBinContent( istartBin, hNLife[pmtNum]->GetBinContent(istartBin)+phitQ);
       }
-      if(nfirstTime==1E9&&nphit0.qsum>firstChargeCut) 
+      if(ntriggerTime==1E9&&nphit0.qsum>firstChargeCut) 
         printf(" WARNING NO NEGATIVE FIRST PULSE event %i  pmt %i pulses %i qhit %f time %f first %f charge %f \n",
-            ientry,pmtNum,negnhits,nphit0.qsum,nphit0.startTime*microSec,nfirstTime,nfirstCharge);
+            ientry,pmtNum,negnhits,nphit0.qsum,nphit0.startTime*microSec,ntriggerTime,nfirstCharge);
 
       // save for npmtHit ntuple
       qpmt[pmtNum][0]=phit0.qsum;
@@ -561,10 +596,11 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
 
     //cout << ddigi[0].size() << "   " <<  nped[0]  << "  " << nped[1] << " " << qped[0] << "  " << qped[1] <<  endl;
 
+    hQSum[0]->Fill(qsum[0]);
+    hQEarly[0]->Fill(qsum1[0]);
+    hQLate[0]->Fill(qsum3[0]);
     if(npmtHit[0]>0||npmtHit[1]>0) 
-      ntEvent->Fill(ientry,npmtHit[0],npmtHit[1],tpmt[0][0],tpmt[0][1],tpmt[1][0],
-          tpmt[1][1],qped[0],qped[1],qpmt[0][0],qpmt[0][1],qpmt[1][0],qpmt[1][1],qsum[0],qsum[1]);
-   
+      ntEvent->Fill(ientry,npmtHit[0],nspe[0],qsum[0],qsum1[0],qsum3[0],qspe[0]);
       if(ientry%printInterval==0) printf(" total hits PMT1 %i PMT2 %i out of %u events events with no peaks %u \n",totalHits[0],totalHits[1],ientry,noPeakEventCount);
   }
   printf(" total hits PMT1 %i PMT2 %i out of %lld events events with no peaks %u \n",totalHits[0],totalHits[1],nentries,noPeakEventCount);
@@ -572,18 +608,59 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   printf(" derivative sigma is %.2f \n",derivativeSigma);
   if(isSimulation) simMatchStats->print();
 
+  TH1D* htimeCountNorm = (TH1D*) hLifeCount[0]->Clone("timeCountNorm");
+  htimeCountNorm->SetTitle(" average photon time (ns) (PMT 0) ");
+  if(nentries>0) for(int ibin=0; ibin<htimeCountNorm->GetNbinsX()+2; ++ibin) htimeCountNorm->SetBinContent(ibin, hLifeCount[0]->GetBinContent(ibin)/float(nentries));
+
+  TH1D* hQSumNorm = (TH1D*) hQSum[0]->Clone("QSumNorm");
+  hQSumNorm->SetTitle(" average Q  (PMT 0) ");
+  if(nentries>0) for(int ibin=0; ibin<hQSumNorm->GetNbinsX()+2; ++ibin) hQSumNorm->SetBinContent(ibin, hQSum[0]->GetBinContent(ibin)/float(nentries));
+
+  TH1D* hQEarlyNorm = (TH1D*) hQEarly[0]->Clone("QEarlyNorm");
+  hQEarlyNorm->SetTitle(" average prompt Q  (PMT 0) ");
+  if(nentries>0) for(int ibin=0; ibin<hQEarlyNorm->GetNbinsX()+2; ++ibin) hQEarlyNorm->SetBinContent(ibin, hQEarly[0]->GetBinContent(ibin)/float(nentries));
+ 
+  TH1D* hQLateNorm = (TH1D*) hQLate[0]->Clone("QLateNorm");
+  hQLateNorm->SetTitle(" average late Q  (PMT 0) ");
+  if(nentries>0) for(int ibin=0; ibin<hQLateNorm->GetNbinsX()+2; ++ibin) hQLateNorm->SetBinContent(ibin, hQLate[0]->GetBinContent(ibin)/float(nentries));
+
+  // find SPE
+  TF1 *fLan = new TF1("flan","landau",speStartTimeCut,1);
+  hSPE[0]->Fit("flan","R");
+  Double_t SPEval= fLan->GetParameter(1);
+
+  //
+  hSPE[0]->SetTitle(Form("%s SPE peak %.3f",tag.Data(),SPEval));
+  //
+  Double_t meanQ=hQSumNorm->GetMean();
+  Double_t meanPE=0;
+  if(SPEval>0) meanPE = meanQ/SPEval;
+  hQSumNorm->SetTitle(Form(" mean Q = %.3f SPE %.3f PMT 0",meanQ , meanPE));
+  //
+  Double_t meanEarlyQ=hQEarlyNorm->GetMean();
+  Double_t meanEarlyPE=0;
+  if(SPEval>0) meanEarlyPE = meanEarlyQ/SPEval;
+  hQEarlyNorm->SetTitle(Form(" mean Q = %.3f SPE %.3f PMT 0",meanEarlyQ , meanEarlyPE));
+  //
+  Double_t meanLateQ=hQLateNorm->GetMean();
+  Double_t meanLatePE=0;
+  if(SPEval>0) meanLatePE = meanLateQ/SPEval;
+  hQLateNorm->SetTitle(Form(" mean Q = %.3f SPE %.3f PMT 0",meanLateQ , meanLatePE));
+  //
+   printf("REPORT %s # events %lld SPE peak is %.3f  <Q> %.3f prompt %.3f late %.3f Q-SPE/event %.3f prompt %.3f late %.3f  \n",
+      tag.Data(),nentries,SPEval,meanQ,meanEarlyQ,meanLateQ,meanPE,meanEarlyPE,meanLatePE);
   outfile->Purge();
   outfile->Write();
 
   return;
-}
+  }
 
 
-hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vector<Double_t> ddigi,Double_t sigma, Double_t& firstTime, Double_t& firstCharge) 
-{
+  hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vector<Double_t> ddigi,Double_t sigma, Double_t& triggerTime, Double_t& firstCharge) 
+  {
 
-  firstTime=1E9;
-  firstCharge=0;
+    triggerTime=1E9;
+    firstCharge=0;
   hitMap pmtHits;
   if(peakList.size()<1) return pmtHits;
   Double_t qmax=0;
@@ -626,7 +703,7 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
     // just use the biggest pulse 
     if(qsum>qmax) {
       qmax=qsum;
-      firstTime=phit.startTime*microSec;
+      triggerTime=phit.startTime*microSec;
       firstCharge = qsum;
     }
     Double_t hitTime = phit.startTime*microSec;
@@ -640,10 +717,10 @@ hitMap anaRun::makeHits(peakType peakList, std::vector<Int_t> peakKind, std::vec
   hitMapIter hitIter;
   hitIter=pmtHits.begin();
   TPmtHit phit0 = hitIter->second;
-  firstTime = phit0.startTime*microSec;
+  triggerTime = phit0.startTime*microSec;
   firstCharge = phit0.qsum;
   */
-  firstTime=0.0;
+  triggerTime=0.0;
   if(firstCharge<firstChargeCut&&pmtHits.size()>0&&qmax>firstChargeCut) printf("\t WARNING XXXXX NO FIRST PULSE pulses %i max %f \n",int(pmtHits.size()),qmax);
 
   return  pmtHits;

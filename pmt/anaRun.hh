@@ -55,6 +55,8 @@ public :
   double microSec;
   bool isSimulation;
   const Double_t qnorm=0.05;
+  const Double_t speTimeCut = 3.0; // microsec 
+  const Double_t speStartTimeCut = 0.02; // microsec 
   Int_t nSigma;
   Int_t aveWidth;
   Int_t windowSize;
@@ -126,7 +128,9 @@ public :
   TNtuple *ntSimMatch;
   TH1I* hHitLength;
   TH1D* hFFT[NPMT];
-  TH1D* hHitQ[NPMT];
+  TH1D* hQSum[NPMT];
+  TH1D* hQEarly[NPMT];
+  TH1D* hQLate[NPMT];
   TH1D* hNHits[NPMT];
   TH1D* hNegNHits[NPMT];
   TH1D* hPMTRaw[NPMT];
@@ -135,6 +139,7 @@ public :
   TH1D* hPMTDerivative[NPMT];
   TH1D* hDerivativeNoise[NPMT];
   TH1D* hSum[NPMT];
+  TH1D* hSPE[NPMT];
   TH1D* hLife[NPMT];
   TH1D* hLifeSim[NPMT];
   TH1D* hLifeNoise[NPMT];
