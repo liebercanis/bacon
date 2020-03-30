@@ -30,7 +30,9 @@
 
 //
 #include "TPmtEvent.hxx"
+#include "TBaconEvent.hxx"
 #include "TPmtHit.hxx"
+#include "TPulse.hxx"
 #include "TPmtSimulation.hxx"
 #include "TPmtSimMatchStats.hxx"
 
@@ -69,6 +71,8 @@ public :
   virtual ~anaRun(){;}
 
   TTree* pmtTree;
+  TTree* TBacon;
+  TBaconEvent *baconEvent;
   TPmtEvent* pmtEvent;
   TPmtSimulation* pmtSimulation;
   TPmtSimMatchStats *simMatchStats;
@@ -117,8 +121,8 @@ public :
   std::vector<Double_t > inverseFFT(Int_t ipmt,Int_t ievent, std::vector<std::complex<double> > VectorComplex,std::vector<Double_t> sum);
   int nMaxHistEvents;
   // histogram pointers
+  TTree   *treeHit;
   TNtuple *ntWave;
-  TNtuple *ntHit;
   TNtuple *ntNHit;
   TNtuple *ntEvent;
   TNtuple *ntCal;
