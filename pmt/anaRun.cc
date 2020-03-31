@@ -46,6 +46,17 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   aveWidth=20;
   spec = new TSpectrum();
   //Int_t irunStop = irunStart;
+  
+
+  //Int_t irunStop = irunStart;
+  TString outFileName2 ; outFileName2.Form("TBacon_%s_Ev_%i_derivative_%.2f.root",tag.Data(),maxEvents,derivativeSigma);
+  TFile *outfile2 = new TFile(outFileName2,"recreate");
+  outfile2->cd();
+  TBacon =  new TTree("TBacon"," bacon data ");
+  baconEvent = new TBaconEvent();
+  TBacon->Branch("bevent",&baconEvent);
+
+
   TString outFileName ; outFileName.Form("%s_Ev_%i_derivative_%.2f.root",tag.Data(),maxEvents,derivativeSigma);
   TFile *outfile = new TFile(outFileName,"recreate");
   outfile->mkdir("pulses");
@@ -64,10 +75,6 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   // now a TTree
   treeHit = new TTree("THit","Tree with hits");
   treeHit->Branch("hits",&theHit,"nev/I:nhits/I:order/I:istart/I:nwidth/I:good/I:kind/I:time/F:thit/F:q/F:qerr/F:peak/F:qsum/F:q900/F");
-
-  TBacon =  new TTree("TBacon"," bacon data ");
-  baconEvent = new TBaconEvent();
-  TBacon->Branch("bevent",&baconEvent);
 
 
   //
@@ -168,6 +175,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   if(maxEvents>0) nentries=maxEvents;
   printf(" STARTING RUN %s with  events  %lld of %lld derivative smoothing = %i \n",tag.Data(),nentries,pmtTree->GetEntries(),windowSize);
   for (UInt_t ientry=0; ientry<nentries; ientry++) {
+    baconEvent->hits.clear();
     pmtTree->GetEntry(ientry);
     if(pmtEvent->time.size() == 0) continue;
     nSamples = pmtEvent->time.size();
@@ -743,14 +751,14 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   //
   Double_t meanLateQ=hQLateNorm->GetMean();
   Double_t meanLatePE=0;
-  if(SPEval>0) meanLatePE = meanLateQ/SPEval;
+  if(SPEval>0)  meanLateQ/SPEval;
   hQLateNorm->SetTitle(Form(" mean Q = %.3f SPE %.3f PMT 0",meanLateQ , meanLatePE));
   //
    printf("REPORT %s # events %lld SPE peak is %.3f  <Q> %.3f prompt %.3f late %.3f Q-SPE/event %.3f prompt %.3f late %.3f  \n",
       tag.Data(),nentries,SPEval,meanQ,meanEarlyQ,meanLateQ,meanPE,meanEarlyPE,meanLatePE);
   outfile->Purge();
   outfile->Write();
-
+  outfile2->Write();
   return;
   }
 
