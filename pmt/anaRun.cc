@@ -175,7 +175,7 @@ anaRun::anaRun(TString tag, Int_t maxEvents)
   if(maxEvents>0) nentries=maxEvents;
   printf(" STARTING RUN %s with  events  %lld of %lld derivative smoothing = %i \n",tag.Data(),nentries,pmtTree->GetEntries(),windowSize);
   for (UInt_t ientry=0; ientry<nentries; ientry++) {
-    baconEvent->hits.clear();
+    baconEvent->Clear();
     pmtTree->GetEntry(ientry);
     if(pmtEvent->time.size() == 0) continue;
     nSamples = pmtEvent->time.size();
