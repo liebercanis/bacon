@@ -29,7 +29,7 @@ anaCompass::anaCompass(TString tag, Int_t maxEvents)
   bool debug=false;
   printf(" starting anaCompass tag %s \n",tag.Data());
 
-  TString fileName; fileName.Form("rootData/DS4/compass_run_%s.root",tag.Data());
+  TString fileName; fileName.Form("rootData/DS4/run_31/UNFILTERED/compass_run_%s.root",tag.Data());
   
   printf(" looking for file %s\n",fileName.Data());
   fChain = new TChain("Data");
