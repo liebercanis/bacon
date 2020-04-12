@@ -2,7 +2,8 @@
 #include "lifeFit.hh"
 using namespace TMath;
 
-static double xstart =1.4;
+static double xstart =4;
+
 
 static double fmodel(double *xx, double *par) 
 {
@@ -16,18 +17,17 @@ static double fmodel(double *xx, double *par)
   double Am = binwidth*par[6];
   double tm = par[7];
   double tap = 1./( 1./ta + 1./tdp);
-  double t1 = 1./( 1./tdp - 1./tx);
-  double t2 = 1./( 1./tap - 1./tx);
+  double t1=1./( 1./tx- 1./tdp);
+  double t2=1./( 1./tx- 1./tap);
   double C = A0*ta/tdp;
   double A = A0 * Exp(-t/tap);
   double D = C*( Exp(-t/tdp) - Exp(-t/tap) );
-  double X = C/tdp*(t2*Exp(-t/tap) - t1*Exp(-t/tdp)) - C/tdp*(t1-t2)*Exp(-t/tx);
+  double X = C/tdp*(t1*Exp(-t/tdp) - t2*Exp(-t/tap)) + C/tdp*(t2-t1)*Exp(-t/tx);
   double M = Am*Exp(-t/tm);
-  double f =  A+D+X+M;
+  double f =  A+X+M; // D dark
   //printf(" f %f A %f D %f X %f M %f\n",f,A,D,X,M);
   return f;
 }
-
 
 
 static double fmodelA(double *xx, double *par) 
@@ -42,16 +42,18 @@ static double fmodelA(double *xx, double *par)
   double Am = binwidth*par[6];
   double tm = par[7];
   double tap = 1./( 1./ta + 1./tdp);
-  double t1 = 1./( 1./tdp - 1./tx);
-  double t2 = 1./( 1./tap - 1./tx);
+  double t1=1./( 1./tx- 1./tdp);
+  double t2=1./( 1./tx- 1./tap);
   double C = A0*ta/tdp;
   double A = A0 * Exp(-t/tap);
   double D = C*( Exp(-t/tdp) - Exp(-t/tap) );
-  double X = C/tdp*(t2*Exp(-t/tap) - t1*Exp(-t/tdp)) - C/tdp*(t1-t2)*Exp(-t/tx);
+  double X = C/tdp*(t1*Exp(-t/tdp) - t2*Exp(-t/tap)) + C/tdp*(t2-t1)*Exp(-t/tx);
   double M = Am*Exp(-t/tm);
-
-  return  A;
+  double f =  A+X+M; // D dark
+  //printf(" f %f A %f D %f X %f M %f\n",f,A,D,X,M);
+  return A;
 }
+
 
 static double fmodelD(double *xx, double *par) 
 {
@@ -65,14 +67,15 @@ static double fmodelD(double *xx, double *par)
   double Am = binwidth*par[6];
   double tm = par[7];
   double tap = 1./( 1./ta + 1./tdp);
-  double t1 = 1./( 1./tdp - 1./tx);
-  double t2 = 1./( 1./tap - 1./tx);
+  double t1=1./( 1./tx- 1./tdp);
+  double t2=1./( 1./tx- 1./tap);
   double C = A0*ta/tdp;
   double A = A0 * Exp(-t/tap);
   double D = C*( Exp(-t/tdp) - Exp(-t/tap) );
-  double X = C/tdp*(t2*Exp(-t/tap) - t1*Exp(-t/tdp)) - C/tdp*(t1-t2)*Exp(-t/tx);
+  double X = C/tdp*(t1*Exp(-t/tdp) - t2*Exp(-t/tap)) + C/tdp*(t2-t1)*Exp(-t/tx);
   double M = Am*Exp(-t/tm);
-
+  double f =  A+X+M; // D dark
+  //printf(" f %f A %f D %f X %f M %f\n",f,A,D,X,M);
   return D;
 }
 
@@ -88,17 +91,17 @@ static double fmodelX(double *xx, double *par)
   double Am = binwidth*par[6];
   double tm = par[7];
   double tap = 1./( 1./ta + 1./tdp);
-  double t1 = 1./( 1./tdp - 1./tx);
-  double t2 = 1./( 1./tap - 1./tx);
+  double t1=1./( 1./tx- 1./tdp);
+  double t2=1./( 1./tx- 1./tap);
   double C = A0*ta/tdp;
   double A = A0 * Exp(-t/tap);
   double D = C*( Exp(-t/tdp) - Exp(-t/tap) );
-  double X = C/tdp*(t2*Exp(-t/tap) - t1*Exp(-t/tdp)) - C/tdp*(t1-t2)*Exp(-t/tx);
+  double X = C/tdp*(t1*Exp(-t/tdp) - t2*Exp(-t/tap)) + C/tdp*(t2-t1)*Exp(-t/tx);
   double M = Am*Exp(-t/tm);
-
+  double f =  A+X+M; // D dark
+  //printf(" f %f A %f D %f X %f M %f\n",f,A,D,X,M);
   return X;
 }
-
 
 
 
@@ -133,24 +136,15 @@ static double ftriple(double *xx, double *par)
 
 lifeFit::lifeFit(Long64_t nloop)
 {
-  TString tag;
-  tag = TString("XenonDoping10ppm_1ppmN2_30451");
-  //tag = TString("XenonDoping10ppmGasTest_40000");
-
-  TString fileName ; fileName.Form("TBacon_%s_Ev_0_derivative_3.50.root",tag.Data());
-
-  cout << " looking for file " << fileName << endl;
-  TFile *_file0 = TFile::Open(fileName);
-
-  if(!_file0) {
-    cout << " not finding file " << fileName << endl;
-    return;
-  }
-  TTree *tree;
-  _file0->GetObject("TBacon",tree);
+  TString tag("XenonDoping10ppm_1ppmN2"); 
+  //TString tag("XenonDoping10ppmGasTest_4000x");
+  TChain *tree = new TChain("TBacon");
   TBaconEvent *bEvent = new TBaconEvent();
+  //tree->Add("TBacon_XenonDoping10ppmGasTest_4000*.root");
+  tree->Add("TBacon_XenonDoping10ppm_1ppmN2*derivative_3.00.root");
   tree->SetBranchAddress("bevent",&bEvent);
 
+  tree->GetListOfFiles()->ls();
 
   cout << " TBacon has " << tree->GetEntries() << endl;
 
@@ -158,7 +152,7 @@ lifeFit::lifeFit(Long64_t nloop)
 
   int ipmt=0;
   double maxLife=10.0;
-  double qCutLow=20;
+  double qCutLow=5;
   double qCut=100;
 
   TH1D *hLife[3];
@@ -181,44 +175,15 @@ lifeFit::lifeFit(Long64_t nloop)
   hLife[1]->SetMarkerSize(.2);
 
   
-  hLife[2] = new TH1D("LifeFail",Form(" lifetime PMT cut > %.0f",qCutLow),500,0,maxLife);
+  hLife[2] = new TH1D("LifeFail",Form(" lifetime PMT cut > %.0f",qCut),500,0,maxLife);
   hLife[2]->GetXaxis()->SetTitle(" micro-seconds ");
   hLife[2]->SetMarkerColor(kBlue);
   hLife[2]->SetMarkerStyle(23);
   hLife[2]->SetMarkerSize(.2);
 
 
-  Double_t binwidth = hLife[0]->GetBinWidth(1);
+ 
 
-
-  double tauD=0.5;
-  TF1* modelFit = new TF1("modelFit",fmodel,xstart,10,8);
-  modelFit->SetNpx(1000); // numb points for function
-  modelFit->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
-  modelFit->SetParameters(binwidth,10, 1.0 , 1.8, tauD , 0.02,1.0, 3 );
-  modelFit->FixParameter(0,binwidth);
-  modelFit->FixParameter(1,10);
-
-  TF1* modelFitA = new TF1("modelFitA",fmodelA,xstart,10,8);
-  modelFitA->SetNpx(1000); // numb points for function
-  modelFitA->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
-  modelFitA->SetParameters(binwidth,10, 1.0 , 1.8, tauD , 0.02,1.0, 3  );
-  modelFitA->FixParameter(0,binwidth);
-  modelFitA->FixParameter(1,10);
-
-  TF1* modelFitD = new TF1("modelFitD",fmodelD,xstart,10,8);
-  modelFitD->SetNpx(1000); // numb points for function
-  modelFitD->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
-  modelFitD->SetParameters(binwidth,10, 1.0 , 1.8, tauD , 0.02,1.0, 3  );
-  modelFitD->FixParameter(0,binwidth);
-  modelFitD->FixParameter(1,10);
-
-  TF1* modelFitX = new TF1("modelFitX",fmodelX,xstart,10,8);
-  modelFitX->SetNpx(1000); // numb points for function
-  modelFitX->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
-  modelFitX->SetParameters(binwidth,10, 1.0 , 1.8, tauD , .02,1.0, 3  );
-  modelFitX->FixParameter(0,binwidth);
-  modelFitX->FixParameter(1,10);
 
 
  /* 
@@ -228,21 +193,6 @@ lifeFit::lifeFit(Long64_t nloop)
   }
   */
 
-
-  modelFit->SetLineColor(kBlack);
-  modelFit->GetHistogram()->GetYaxis()->SetRangeUser(1E-5,0.1);
-  modelFit->GetHistogram()->GetXaxis()->SetRangeUser(0,4);
-  modelFitA->SetLineColor(kBlue);
-  modelFitD->SetLineColor(kRed);
-  modelFitX->SetLineColor(kGreen);
-
-  TCanvas *canFullFit = new TCanvas("modelFit","modelFit");
-  canFullFit->SetLogy();
-  modelFit->Draw("");
-  modelFitA->Draw("same");
-  modelFitD->Draw("same");
-  modelFitX->Draw("same");
-  
 
   double timeCut=5;
   TH1D *hQSpe = new TH1D("QSpe"," late pulse charge  ",100,0,2);
@@ -270,8 +220,12 @@ lifeFit::lifeFit(Long64_t nloop)
   hQRatio->GetXaxis()->SetTitle(" q900/qtot ");
   hQRatio->GetYaxis()->SetTitle(" events/bin ");  
   
-  TH1D *hQSum = new TH1D("QSum"," total event charge  ",60,0,300);
-  hQSum->GetXaxis()->SetTitle(" sum pulse Q (x10^9) for event ");
+  TH1D *hQSum = new TH1D("QSum"," total event charge  ",1000,0,300);
+  hQSum->GetXaxis()->SetTitle(" event total dt-Q (x10^9) for event ");
+
+  TH1D *hQSum10 = new TH1D("QSum10"," total event charge > 10 pulses  ",1000,0,300);
+  hQSum10->GetXaxis()->SetTitle(" event total dt-Q (x10^9)for event ");
+
 
   TH1D *hTriggerTime = new TH1D("TriggerTime"," 3 Qspe Trigger time ",1000,.5,1.5);
   TH1D *hTriggerTime0 = new TH1D("TriggerTime0"," first hit Trigger time ",1000,.5,1.5);
@@ -279,18 +233,27 @@ lifeFit::lifeFit(Long64_t nloop)
 
   if(nloop==0) nloop = tree->GetEntries();
 
-  double qspe=0.64;
+  //double qspe=0.64;
+  double qspe=0.1;
+  Long64_t treeNumber = -1;
   for(Long64_t entry =0; entry< nloop ; ++ entry) {
+    Long64_t itree = tree->LoadTree(entry);
+    if(itree!=treeNumber) {
+      tree->SetBranchAddress("bevent",&bEvent);
+      treeNumber= itree;
+    }
     tree->GetEntry(entry);
+    if(entry%1000==0) printf(" ... %lld nhits %lu \n",entry,bEvent->hits.size());
+
     if(bEvent->hits.size()==0) continue;
     double evn = bEvent->npulse;
     hQsumVsN->Fill(bEvent->qsum,evn);
     hQRatio->Fill(bEvent->q900/bEvent->qsum);
     hQSum->Fill(bEvent->qsum);
-    double hitqsum = bEvent->qsum;
-    if(entry%100==0) printf(" ... %lld nhits %lu \n",entry,bEvent->hits.size());
+    if(  bEvent->hits.size()>10 ) hQSum10->Fill(bEvent->qsum);
 
-    if(1) continue;
+    double hitqsum = bEvent->qsum;
+
     // find start time 
     double triggerTime=0;
     for(unsigned ip=0; ip< bEvent->hits.size(); ++ip) {
@@ -314,15 +277,15 @@ lifeFit::lifeFit(Long64_t nloop)
       if(hitTime>timeCut) hQSpeCut->Fill(hitq);
       int hitBin =  hLife[0]->FindBin(hitTime); 
       hQTime->Fill(hitTime,hitq);
-      if(hitqsum>20) {
+      if(bEvent->hits.size()>10 ) {
         hLife[0]->SetBinContent(hitBin, hLife[0]->GetBinContent(hitBin)+hitq);
         hLife[0]->SetBinError(hitBin, sqrt( pow(hLife[0]->GetBinError(hitBin),2)+pow(hitqerr,2) ));
       }
-      if(hitqsum>qCut) {
+      if( hitqsum>qCutLow&&hitqsum<qCut) {
         hLife[1]->SetBinContent(hitBin, hLife[1]->GetBinContent(hitBin)+hitq);
         hLife[1]->SetBinError(hitBin, sqrt( pow(hLife[1]->GetBinError(hitBin),2)+pow(hitqerr,2) ));
       } 
-      if(hitqsum<20) {
+      if(hitqsum<qCutLow) {
         hLife[2]->SetBinContent(hitBin, hLife[2]->GetBinContent(hitBin)+hitq);
         hLife[2]->SetBinError(hitBin, sqrt( pow(hLife[2]->GetBinError(hitBin),2)+pow(hitqerr,2) ));
       }
@@ -343,6 +306,13 @@ lifeFit::lifeFit(Long64_t nloop)
   TCanvas *canqsum = new TCanvas("qsum","qsum");
   hQSum->Draw();
 
+  
+  //gStyle->SetOptFit();
+  TCanvas *canqsum10 = new TCanvas("qsumTen","qsumTen");
+  hQSum10->Draw();
+
+
+
 
 
   qspe = hQSpeCut->GetMean();
@@ -359,6 +329,99 @@ lifeFit::lifeFit(Long64_t nloop)
     hQSum->Fill(hitqsum/qspe);
   }
   */
+  Double_t binwidth = hLife[0]->GetBinWidth(1);
+
+
+  double tauD=0.389;
+  double tauX=0.02;
+  double xppm=1.0;
+  double tau3 = 1.96;
+  double tau1 = 0.006;
+
+  TF1* modelFit = new TF1("modelFit",fmodel,xstart,10,8);
+  modelFit->SetNpx(1000); // numb points for function
+  modelFit->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
+  modelFit->SetParameters(binwidth,xppm, 1.0 , tau3, tauD , tauX,1.0, 3 );
+  modelFit->FixParameter(0,binwidth);
+  modelFit->FixParameter(1,10);
+
+  TF1* modelFitA = new TF1("modelFitA",fmodelA,xstart,10,8);
+  modelFitA->SetNpx(1000); // numb points for function
+  modelFitA->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
+  modelFitA->SetParameters(binwidth,xppm, 1.0 , tau3, tauD , tauX,1.0, 3 );
+  modelFitA->FixParameter(0,binwidth);
+  modelFitA->FixParameter(1,10);
+
+  TF1* modelFitD = new TF1("modelFitD",fmodelD,xstart,10,8);
+  modelFitD->SetNpx(1000); // numb points for function
+  modelFitD->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
+  modelFitD->SetParameters(binwidth,xppm, 1.0 , tau3, tauD , tauX,1.0, 3 );
+  modelFitD->FixParameter(0,binwidth);
+  modelFitD->FixParameter(1,10);
+
+  TF1* modelFitX = new TF1("modelFitX",fmodelX,xstart,10,8);
+  modelFitX->SetNpx(1000); // numb points for function
+  modelFitX->SetParameters(binwidth,xppm, 1.0 , tau3, tauD , tauX,1.0, 3 );
+  modelFitX->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
+  modelFitX->FixParameter(0,binwidth);
+  modelFitX->FixParameter(1,10);
+
+
+  //modelFit->SetParameters(binwidth,10, integral ,1.787, .2 , 0.02, 1 , 3 );
+
+  modelFit->SetLineColor(kBlack);
+  //modelFit->GetHistogram()->GetYaxis()->SetRangeUser(1E-5,0.1);
+  modelFit->GetHistogram()->GetXaxis()->SetRangeUser(0,4);
+  modelFitA->SetLineColor(kRed);
+  modelFitD->SetLineColor(kGreen);
+  modelFitD->SetLineStyle(2);
+  modelFitX->SetLineColor(kBlue);
+  modelFit->SetLineColor(kBlack);
+
+  Double_t integral = hLife[0]->Integral();
+
+  modelFit->SetParameter(2,integral);
+  modelFitA->SetParameter(2,integral);
+  modelFitD->SetParameter(2,integral);
+  modelFitX->SetParameter(2,integral);
+
+
+  
+  modelFit->Print();
+  for(int ii=0; ii<8 ; ++ii) {
+    printf(" param %i %s %.3f \n",ii,modelFit->GetParName(ii),modelFit->GetParameter(ii));
+  }
+
+  double A0 =  modelFitD->GetParameter(2);
+  double ta = modelFitD->GetParameter(3);
+  double tdp = modelFitD->GetParameter(4)/xppm;
+  double tx = modelFitD->GetParameter(5);
+  double tap = 1./( 1./ta + 1./tdp);
+  double t1inv = ( -1./tdp + 1./tx);
+  double t2inv = ( -1./tap + 1./tx);
+
+
+  printf(" tapinv %f tdpinv %f txinv %f 1/t1=taudpinv-tauxinv %f 1/t2=taudpinv-tauxinv %f \n",1./tap,1./tdp,1./tx,t1inv,t2inv);
+
+  /*
+  for(unsigned j=0; j<100; ++j ) {
+    double x = xstart+double(j)/10.;
+    double xx = double(j)/10.;
+    double DD =  A0*ta/tdp*(Exp(-xx/tdp) - Exp(-xx/tap)) ;
+
+    printf(" x=%f A %.3E D %.3E (%.3E) X %.3E T %.3E \n",x, modelFitA->Eval(x),modelFitD->Eval(x),DD,modelFitX->Eval(x),modelFit->Eval(x));
+  }
+  */
+
+
+  TCanvas *canFullFit = new TCanvas(Form("modelFit-tauD-%.1f",tauD),Form("modelFit-tauD-%.1f",tauD));
+  canFullFit->SetLogy();
+  modelFit->Draw("");
+  //modelFit->Draw("same");
+  modelFitA->Draw("same");
+  modelFitD->Draw("same");
+  modelFitX->Draw("same");
+
 
   
   TCanvas *canspe = new TCanvas("qspe","qpe");
@@ -383,27 +446,31 @@ lifeFit::lifeFit(Long64_t nloop)
     Double_t xlow= xstart; //hLife[ih]->GetBinLowEdge(lowBin);
     Int_t highBin = hLife[ih]->FindBin(10.0);
     Double_t xhigh=hLife[ih]->GetBinLowEdge(highBin);
-    Double_t integral = hLife[ih]->Integral();
+    integral = hLife[ih]->Integral();
 
-    printf(" fit range xlow %f bin %i xhigh %f bin %i \n",xlow,lowBin,xhigh,highBin);
+    xlow = 2.0;
+    xhigh= 4.0;
+
+    printf(" fit range xlow %f bin %i xhigh %f bin %i %f \n",xlow,lowBin,xhigh,highBin,integral);
     
+    /*
     fp[ih] = new TF1("modelFit",fmodel,xlow,xhigh,8);
     fp[ih]->SetNpx(1000); // numb points for function
     fp[ih]->SetParNames("binwidth","xppm","A0","tauA","tauD","tauX","Am","tauM");
-    fp[ih]->SetParameters(binwidth,10, integral ,1.8, 2 , 0.02, 1 , 3 );
     fp[ih]->FixParameter(0,binwidth);
+    fp[ih]->SetParameters(binwidth,10, integral ,1.787, tauD , 0.02, 1 , 3 );
     fp[ih]->FixParameter(3,1.787);
-    fp[ih]->SetParLimits(6,0,integral);
-    //fp[ih]->SetParLimits(7,0,100);
+    fp[ih]->SetParLimits(6,0,0.1*integral);
+    fp[ih]->SetParLimits(7,1,1000);
+    //if(ih==2) fp[ih]->FixParameter(7,10000);
+    */
 
 
-    /*
     fp[ih] = new TF1(Form("fexp-%i",ih),fexp,xlow,xhigh,3);
     fp[ih]->SetNpx(1000); // numb points for function
     fp[ih]->SetParNames("lifetime","integral","binwidth");
     fp[ih]->SetParameters(tguess,integral,binwidth);
     fp[ih]->FixParameter(2,binwidth);
-    */
 
     /*
     fp[ih] = new TF1(Form("ftriple-%i",ih),ftriple,xlow,xhigh,7);
@@ -428,21 +495,22 @@ lifeFit::lifeFit(Long64_t nloop)
   hLife[2]->GetYaxis()->SetRangeUser(0.1,hLife[2]->GetBinContent( hLife[2]->GetMaximumBin())*1.1);
 
 
-  can[0] = new TCanvas(Form("life-%s-pass%.0f",tag.Data(),qCutLow),Form("life-%s-pass%.0f",tag.Data(),qCutLow));
-  hLife[0]->SetTitle( Form("life-%s-pass%.0f",tag.Data(),qCutLow) );
+  can[0] = new TCanvas(Form("life-%s-pass-%i-hits",tag.Data(),10),Form("life-%s-passs-%i-hits",tag.Data(),10));
+  hLife[0]->SetTitle( Form("life-%s-pass-%i-hits",tag.Data(),10) );
   can[0]->SetLogy();
   hLife[0]->Draw("E1");
   can[0]->Print(".png");
 
 
-  can[1] = new TCanvas(Form("life-%s-pass%.0f",tag.Data(),qCut),Form("life-%s-pass%.0f",tag.Data(),qCut));
+  can[1] = new TCanvas(Form("life-%s-Q-%.0f-%.0f",tag.Data(),qCutLow,qCut),Form("life-%s-%.0f-%0.f",tag.Data(),qCutLow,qCut));
   can[1]->SetLogy();
-  hLife[1]->SetTitle( Form("life-%s-pass%.0f",tag.Data(),qCut) );
+  hLife[1]->SetTitle( Form("life-%s-Q-%.0f-%.0f",tag.Data(),qCutLow,qCut) );
   hLife[1]->Draw("E1");
 
 
-  can[2] = new TCanvas(Form("life-%s-fail%.0f",tag.Data(),qCut),Form("life-%s-fail%.0f",tag.Data(),qCut));
-  hLife[2]->SetTitle( Form("life-%s-fail%.0f",tag.Data(),qCut) );
+  can[2] = new
+  TCanvas(Form("life-%s-Q-%.0f",tag.Data(),qCutLow),Form("life-%s-Q-%.0f",tag.Data(),qCutLow));
+  hLife[2]->SetTitle( Form("life-%s-Q-%.0f",tag.Data(),qCutLow) );
   can[2]->SetLogy();
   hLife[2]->Draw("E1");
 

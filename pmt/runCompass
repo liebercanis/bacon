@@ -1,0 +1,20 @@
+#!/bin/bash
+if [ -z "$1" ]
+then
+ echo "usage: runCompass <tag> optional <number of events>"
+ exit
+else 
+ TAG=$1
+fi
+
+if [ -z "$2" ]
+then
+  NEV=0
+ else 
+ NEV=$2
+fi
+
+ echo TAG = $TAG NEV = $NEV
+echo root -q -b "anaCompass.cc++(\"$TAG\",$NEV)"
+root -q -b "anaCompass.cc(\"$TAG\",$NEV)"
+
