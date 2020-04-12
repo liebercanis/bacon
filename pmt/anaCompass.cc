@@ -2,8 +2,6 @@
 #include "anaCompass.hh"
 #include <TFitResult.h>
 
-compClass* comp;
-
 struct hit_t {
   int nev;
   int nhits;
