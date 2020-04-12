@@ -1,6 +1,5 @@
 /* MG revised */
 #include "anaCompass.hh"
-#include "compClass.h"
 #include <TFitResult.h>
 
 compClass* comp;
