@@ -114,7 +114,7 @@ int readEvent(Int_t ievent, TString fileName)
     
 }
 
-void readRun(TString dirTag="run_1000", unsigned maxEvents=3)
+void readRun(TString dirTag="run_40000", unsigned maxEvents=0)
 {
   Int_t firstRun=0;
   Int_t lastRun = firstRun;

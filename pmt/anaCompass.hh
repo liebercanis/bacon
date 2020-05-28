@@ -45,7 +45,7 @@ typedef std::vector<std::pair<unsigned,unsigned> >::iterator  peakTypeIter;
 class anaCompass {
   public :
 
-    anaCompass(TString tag="31_199", Int_t maxEvents=0);
+    anaCompass(TString tag="47", Int_t maxEvents=0);
     virtual ~anaCompass(){;}
     void clear();
     void Init();

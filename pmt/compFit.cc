@@ -1,5 +1,5 @@
 /* uses TBaconEvent class */
-#include "lifeFit.hh"
+#include "compFit.hh"
 using namespace TMath;
 
 static double xstart =4;
@@ -134,15 +134,14 @@ static double ftriple(double *xx, double *par)
 
 
 
-lifeFit::lifeFit(Long64_t nloop)
+compFit::compFit(Long64_t nloop)
 {
-  //TString tag("XenonDoping10ppm_1ppmN2"); 
-  //TString tag("XenonDoping10ppmGasTest_4000x");
-  TString tag("anaCompass-31_199");
+  TString tag("31_199");
+  TString filename;
+  filename.Form("TBacon-anaCompass-%s.root",tag.Data());
   TChain *tree = new TChain("TBacon");
   TBaconEvent *bEvent = new TBaconEvent();
-  //tree->Add("TBacon_XenonDoping10ppmGasTest_4000*.root");
-  tree->Add("TBacon_XenonDoping10ppm_1ppmN2*derivative_3.00.root");
+  tree->Add(filename);
   tree->SetBranchAddress("bevent",&bEvent);
 
   tree->GetListOfFiles()->ls();
@@ -244,7 +243,7 @@ lifeFit::lifeFit(Long64_t nloop)
       treeNumber= itree;
     }
     tree->GetEntry(entry);
-    if(entry%1000==0) printf(" ... %lld nhits %lu \n",entry,bEvent->hits.size());
+    if(entry%100==0) printf(" ... %lld nhits %lu \n",entry,bEvent->hits.size());
 
     if(bEvent->hits.size()==0) continue;
     double evn = bEvent->npulse;
