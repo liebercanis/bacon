@@ -1,6 +1,6 @@
-#include "anaNRun.hh"
+#include "anaRun.hh"
 
-anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
+anaRun::anaRun(Int_t dsNum,Int_t runStart,Int_t runStop)
 {
 
 
@@ -29,20 +29,8 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
   bool isSim = false;
   bool debug = false;
   //debug = true;
-  
- 
-  //Int_t irunStop = irunStart;
-  TString outFileName2 = TString("TBAcon_")+to_string(runStart)+TString("_")+to_string(runStop)+TString("_DS_")+to_string(dsNum)+TString(".root");
-  TFile *outfile2 = new TFile(outFileName2,"recreate");
-  outfile2->cd();
-  TBacon =  new TTree("TBacon"," bacon data ");
-  baconEvent = new TBaconEvent();
-  TBacon->Branch("bevent",&baconEvent); 
-  
-  
   TString outFileName = TString("runAna")+to_string(runStart)+TString("_")+to_string(runStop)+TString("_DS_")+to_string(dsNum)+TString(".root");
   TFile *outfile = new TFile(outFileName ,"recreate");
-  outfile->cd();
 
   TH1D * hTripletAverage[3];
   hTripletAverage[0] = new TH1D("TLong","TLong",5000,0.1e-6,4.5e-6);
@@ -56,14 +44,12 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
   TH1D * hTotalChargeMuon = new TH1D("TotalChargeMuon","TotalChargeMuon",1000,10,10000);
   TH1D * hTotalChargeRand = new TH1D("TotalChargeRand","TotalChargeRand",1000,10,10000);
 
-  TH1D *hMuVmax = new TH1D("MuVmax","muon vmax",1000,0,1);
-
   for(int z = runStart; z <= runStop; z++){
     if(z >= 5183 && z <= 5217) continue;
     if(z>5300 && z%2 == 0 && z<10000) continue;
     //event info from pulse finding
     TString fileName;
-    TString fileDir = TString("processedData/DS")+to_string(dsNum)+TString("/");
+    TString fileDir = TString("/home/nmcfadde/RooT/PMT/processedData/DS")+to_string(dsNum)+TString("/");
 
     if(dsNum == 1){
       if(z>= 100 && z < 1000)
@@ -159,35 +145,33 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
     }
     TH1D * hSummedWaveform[2];
     infile->GetObject("SumWaveform0",hSummedWaveform[0]);
-    if(hSummedWaveform[0]) {
-      hSummedWaveform[0]->SetTitle(Form("SumWaveform0_%i",z));
-      infile->GetObject("SumWaveform1",hSummedWaveform[1]);
-      hSummedWaveform[1]->SetTitle(Form("SumWaveform1_%i",z));
-      TF1 * fTripFitSummed = new TF1("LongExpoPlusConstantSummed","([0])*exp(-x/[1]) + [2]",2.5e-6,9.5e-6);
-      Double_t maxVal = hSummedWaveform[0]->GetMaximum();
-      Double_t minVal = hSummedWaveform[0]->GetMinimum();
-      fTripFitSummed->SetParameter(0,maxVal);
-      fTripFitSummed->SetParLimits(0,0.1*maxVal,2*maxVal);;
-      fTripFitSummed->SetParameter(1,1e-6);
-      fTripFitSummed->SetParLimits(1,0.5e-6,2.5e-6);
-      fTripFitSummed->SetParameter(2,minVal);
-      if(minVal < 0) minVal = 0;
-      fTripFitSummed->SetParLimits(2,0,10);
-      for(int i = 0; i < 2;i++){
-        if(i == 0){
-          hSummedWaveform[i]->Fit("LongExpoPlusConstantSummed","Q0","",3e-6,9e-6);
-          tripletLifetimePMTSum0.push_back(fTripFitSummed->GetParameter(1));
-          tripletLifetimeErrorPMTSum0.push_back(fTripFitSummed->GetParError(1));
-          cout<<"Summed Waveform Triplet fit PMT 0 "<<fTripFitSummed->GetParameter(1)<<" ";
-        }
-        else if(i == 1 && 0){
-          hSummedWaveform[i]->Fit("LongExpoPlusConstantSummed","Q0","",3e-6,9e-6);
-          tripletLifetimePMTSum1.push_back(fTripFitSummed->GetParameter(1));
-          tripletLifetimeErrorPMTSum1.push_back(fTripFitSummed->GetParError(1));
-          cout<<"...PMT 1 "<<fTripFitSummed->GetParameter(1)<<endl;
-        }
-        //hSummedWaveform[i]->Draw();
+    hSummedWaveform[0]->SetTitle(Form("SumWaveform0_%i",z));
+    infile->GetObject("SumWaveform1",hSummedWaveform[1]);
+    hSummedWaveform[1]->SetTitle(Form("SumWaveform1_%i",z));
+    TF1 * fTripFitSummed = new TF1("LongExpoPlusConstantSummed","([0])*exp(-x/[1]) + [2]",2.5e-6,9.5e-6);
+    Double_t maxVal = hSummedWaveform[0]->GetMaximum();
+    Double_t minVal = hSummedWaveform[0]->GetMinimum();
+    fTripFitSummed->SetParameter(0,maxVal);
+    fTripFitSummed->SetParLimits(0,0.1*maxVal,2*maxVal);;
+    fTripFitSummed->SetParameter(1,1e-6);
+    fTripFitSummed->SetParLimits(1,0.5e-6,2.5e-6);
+    fTripFitSummed->SetParameter(2,minVal);
+    if(minVal < 0) minVal = 0;
+    fTripFitSummed->SetParLimits(2,0,10);
+    for(int i = 0; i < 2;i++){
+      if(i == 0){
+        hSummedWaveform[i]->Fit("LongExpoPlusConstantSummed","Q0","",3e-6,9e-6);
+        tripletLifetimePMTSum0.push_back(fTripFitSummed->GetParameter(1));
+        tripletLifetimeErrorPMTSum0.push_back(fTripFitSummed->GetParError(1));
+        cout<<"Summed Waveform Triplet fit PMT 0 "<<fTripFitSummed->GetParameter(1)<<" ";
       }
+      else if(i == 1 && 0){
+        hSummedWaveform[i]->Fit("LongExpoPlusConstantSummed","Q0","",3e-6,9e-6);
+        tripletLifetimePMTSum1.push_back(fTripFitSummed->GetParameter(1));
+        tripletLifetimeErrorPMTSum1.push_back(fTripFitSummed->GetParError(1));
+        cout<<"...PMT 1 "<<fTripFitSummed->GetParameter(1)<<endl;
+      }
+      //hSummedWaveform[i]->Draw();
     }
     string fullTitle = eventInfo->GetTitle();
     double DateYear = stod(fullTitle.substr(0,4));
@@ -261,7 +245,7 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
     if(debug) cout<<"Processing Events"<<endl;
     outfile->cd();
 
-  
+    
     
     Double_t tMaxCut = 5e-6,tMinCut = 0.00e-6,vMaxEventCut = 10,vMinCut = 1e-3,peakWidthCut = 0,nHits = 10;//25e-9;
     for(int ientry = 0; ientry < NEvents; ientry++){
@@ -271,18 +255,16 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
       processedTree->GetEntry(ientry);
       Int_t nPMTs = pmtRun->nPMTs;
       Double_t deltaT = pmtRun->deltaT;
-
       Int_t triggerTime = 0;
       //Process waveform information
       std::vector<Double_t> volts;
       std::vector<Double_t> time = pmtEvent->time;
 
       for(int j = 0; j < nPMTs;j++){
-        baconEvent->clear();
-        if(debug) cout<<"Looping over PMTs"<<endl;
+        if(debug) cout<<"Looping over PMTs with "<<pmtRun->charge[j].size()<<" in event "<<ientry<<endl;
         if(j == 0) volts = pmtEvent->volt1;
         else if(j == 1) volts = pmtEvent->volt2;
-
+        
         Int_t nPulses = pmtRun->charge[j].size();
         Double_t T0 = pmtRun->T0[j];
         Double_t C0 = 0;
@@ -292,6 +274,7 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
         Double_t vMax = pmtRun->vMax[j];
         Double_t muonVmax = 9999;
         Double_t startCharge = 0;
+	if(debug) cout<<"Doing a early time charge cut "<<endl;
         for(int i = 0; i < nPulses;i++){
           Double_t charge     = pmtRun->charge[j][i];
           Double_t startTime  = pmtRun->startTimes[j][i];
@@ -299,11 +282,11 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
           if(startTime > 9e-7) break;
           startCharge += charge;
         }
-        if(startCharge/totalCharge > 0.05)continue;
+        //if(startCharge/totalCharge > 0.05)continue;
+        if(startCharge/totalCharge > 1.05)continue;
         if(pmtRun->vMax.size() == 2){
           muonVmax = pmtRun->vMax[1];
         }
-        hMuVmax->Fill(muonVmax);
         if(muonVmax > 500e-3 && muonVmax != 9999 && j == 0){
           hTotalChargeMuon->Fill(totalCharge/meanSPE[j]);
         }
@@ -312,10 +295,9 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
         }
         triggerTime += T0;
         if(j == 0) hCharge->Fill(totalCharge/meanSPE[j]);
-
-        //if(z < 19999 || z > 20010)
-        //if(z < 20020 || z > 20026)
-        //if(z < 20040 || z > 20050)
+        //if(z < 19999 || z > 20010){
+        //if(z < 20020 || z > 20026){
+        //if(z < 20040 || z > 20050){
         if( (z < 20060 || z > 20070) && j == 0){
           hTotalChargeAverage->Fill(totalCharge/meanSPE[j]);
         }
@@ -326,30 +308,10 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
         }
         //avoid events that start late
         if(tMax > tMaxCut && j == 0){
-          if(debug) cout<<"tMaxCut "<<tMaxCut<<", pulse value "<<tMax<<", PMT "<<j<<endl;
-          eventCounter--;
-          continue;
+            if(debug) cout<<"tMaxCut "<<tMaxCut<<", pulse value "<<tMax<<", PMT "<<j<<endl;
+            eventCounter--;
+            continue;
         }
-
-        baconEvent->event=ientry;
-        baconEvent->run=z;
-        baconEvent->npulse=nPulses;
-        baconEvent->npmt=j;
-        baconEvent->totQ = pmtRun->totalCharge[j];
-        baconEvent->spe = meanSPE[j];
-        baconEvent->muVmax=muonVmax;
-
-
-        baconEvent->T0=pmtRun->T0[j];
-        baconEvent->totalCharge=pmtRun->totalCharge[j];
-        baconEvent->tMax=       pmtRun->tMax[j];
-        baconEvent->vMax=       pmtRun->vMax[j];
-        baconEvent->cMax=       pmtRun->cMax[j];
-        baconEvent->baseline=   pmtRun->baseline[j];
-        baconEvent->sDev=       pmtRun->sDev[j]; 
-
-
-        if(ientry%1000 == 0 || ientry == NEvents - 1) printf(" ev %i  pmt %i totQ %E \n ",ientry, j,baconEvent->totQ);
 
         for(int i = 0; i < nPulses;i++){
           if(debug && i == 0) cout<<"Looping over Pulses"<<endl;
@@ -358,19 +320,21 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
           Double_t peakWidth  = pmtRun->peakWidths[j][i];
           Double_t peakHeight = pmtRun->peakHeights[j][i];
           Double_t peakTime   = pmtRun->peakTimes[j][i];
-          TPulse thePulse;
-          thePulse.time=startTime;
-          thePulse.tpeak=peakTime;
-          thePulse.pwidth=peakWidth;
-          thePulse.peak=peakHeight;
-          thePulse.q=charge;
-          //thePulse.qerr=phitQErr;
-
-
           //SPE Fill
-          if(peakTime > 7e-6) hSPE[j]->Fill(charge);
+          if(peakTime > 7e-6)
+            hSPE[j]->Fill(charge);
+         
+        //  Double_t F40 = 0;
+       // Double_t F40Window = 40e-9;
+       // Double_t F40Start = 1e-6,F40Stop = F40Start+ F40Window;
+       // for(int i = F40Start/deltaT; i <= F40Stop/deltaT; i++){
+       //   F40 += -volts[i]*deltaT;  
+       // }
+       // if(F40/totalCharge > 0.05) continue;
+        //if(debug) cout<<" Filling final histogram"<<endl;
+       // hF40Summed->Fill(F40/totalCharge);
 
-          
+
           //Pulse Cuts
           //After Pulse Cut
           //double peakTimeMean = 1.53e-6,peakTimeSigma = 100e-9;
@@ -378,8 +342,6 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
           //if(charge < meanSPE[j] - 2*sigmaSPE[j]) continue;
           //if(charge < 0) continue;
           ///*
-
-
           //cut on small peaks
           debug = false;
           if(peakHeight < vMinCut && j == 0){
@@ -415,11 +377,11 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
             hTripletChargeWeightedPMT[0]->Fill(peakTime,charge/meanSPE[j]);
             hTripletChargeWeightedPMT[1]->Fill(peakTime,charge/meanSPE[j]);
           }
-          /** baconEvent add the pulse **/
-          baconEvent->hits.push_back(thePulse);
         }
         //if(debug) cout<<"F40 cut "<<endl;
         //pulse finding loop
+        //************//
+        //************//
         //F40 cut time window
         Double_t F40 = 0;
         Double_t F40Window = 40e-9;
@@ -429,15 +391,9 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
         }
         //if(debug) cout<<" Filling final histogram"<<endl;
         hF40Summed->Fill(F40/totalCharge);
-        baconEvent->F40=F40;
-        /*** TBacon fill ***/
-        TBacon->Fill();
       }
-
-      if(ientry%1000 == 0 || ientry == NEvents - 1) cout<<"\t processed "<<ientry<<" events "<< TBacon->GetEntries() 
-        << " totQ 0 " << pmtRun->totalCharge[0]
-          << " totQ 1 " << pmtRun->totalCharge[1] << endl;
-      //if((ientry+1)%(int(NEvents*0.33)) == 0 || ientry == NEvents - 1 ) cout<<"\tprocessed "<<ientry+1<<" events"<<endl;
+      //if(ientry%1000 == 0 || ientry == NEvents - 1) cout<<"processed "<<ientry<<" events"<<endl;
+      if((ientry+1)%(int(NEvents*0.33)) == 0 || ientry == NEvents - 1 ) cout<<"\tprocessed "<<ientry+1<<" events"<<endl;
     }
 
     Double_t startFit = 2.5e-6;
@@ -529,10 +485,12 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
       hTripletChargeWeightedSummed->Fit("SingleExpoPlusConstant","","",startFit,stopFit);
     else{
       hTripletChargeWeightedSummed->Fit("SingleExpoPlusConstant",fitStr,"",startFit,stopFit);
-      //hTripletChargeWeightedPMT[0]->Fit("SingleExpoPlusConstant",fitStr,"",startFit,stopFit);
-      //fitTriplet0 = fSingleExpoPlusConstant->GetParameter(1);
-      //fitTripletError0 = fSingleExpoPlusConstant->GetParError(1);
+      hTripletChargeWeightedPMT[0]->Fit("SingleExpoPlusConstant",fitStr,"",startFit,stopFit);
+      fitTriplet0 = fSingleExpoPlusConstant->GetParameter(1);
+      fitTripletError0 = fSingleExpoPlusConstant->GetParError(1);
       hTripletChargeWeightedPMT[0]->Fit("AfterPulsing",fitStr,"",1.5e-6,stopFit);
+      fitTriplet1 = fAfterPulsing->GetParameter(1);
+      fitTripletError1 = fAfterPulsing->GetParError(1);
       //refit if something goes wrong
       if(5 < fAfterPulsing->GetChisquare()/fAfterPulsing->GetNDF()){
         cout<<"refitting because ChiSquare/NDF is "<<fAfterPulsing->GetChisquare()/fAfterPulsing->GetNDF()
@@ -587,9 +545,9 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
       ", short "<<binFinal*hTripletChargeWeightedPMT[0]->Integral(bin1,bin2,"width")/((10e-6-900e-9)*eventCounter) <<
       ", long "<<binFinal*fSingleExpoPlusConstant->Integral(1.3e-6,10e-6)/((10e-6-900e-9)*eventCounter) <<endl;
     
-    //if(z < 19999 || z > 20010)
-    //if(z < 20020 || z > 20026)
-    //if(z < 20040 || z > 20050)
+    //if(z < 19999 || z > 20010){
+    //if(z < 20020 || z > 20026){
+    //if(z < 20040 || z > 20050){
     if(z < 20060 || z > 20070){
 
       hTripletTotalAverage->Add(hTripletChargeWeightedPMT[0]);
@@ -602,8 +560,8 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
     hTripletAverage[1]->Fill(fitTriplet1);
     tripletLifetimePMT1.push_back(fitTriplet1);
     tripletLifetimeErrorPMT1.push_back(fitTripletError1);
-    //Double_t tripletMean = (fitTriplet0+fitTriplet1)/2.;
-    //Double_t tripletSigma = sqrt(pow(tripletMean-fitTriplet0,2)+pow(tripletMean-fitTriplet1,2));
+    tripletMean = (fitTriplet0+fitTriplet1)/2.;
+    tripletSigma = sqrt(pow(tripletMean-fitTriplet0,2)+pow(tripletMean-fitTriplet1,2));
 
     //Double_t tripletMean = fitTriplet1;
     //Double_t tripletSigma = fitTripletError1;
@@ -731,5 +689,4 @@ anaNRun::anaNRun(Int_t dsNum,Int_t runStart,Int_t runStop)
   hTotalChargeAverage->Write();
   //hTripletAverage->Write();
   outfile->Write();
-  outfile2->Write();
 }

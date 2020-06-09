@@ -20,9 +20,14 @@ class TBaconEvent: public TNamed {
 
 		void clear();
 		// data elements
-    Int_t    event;
+    Long64_t event;
+    Int_t    channel;
+    Int_t    board;
+    Int_t    flags;
     Int_t    npulse;
     Int_t    nspe;
+    Long64_t timeStamp;
+    Double_t energy;
     Double_t wsum;
     Double_t qsum;
     Double_t q900;

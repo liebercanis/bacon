@@ -43,8 +43,9 @@ class TBaconRun: public TNamed {
     Double_t speqSum;
     //
     Double_t aveSpe;
+    Double_t aveSpeErr;
 
-    ClassDef(TBaconRun,1)
+    ClassDef(TBaconRun,2)
 };
 #endif
 

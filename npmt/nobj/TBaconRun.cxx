@@ -36,5 +36,6 @@ void TBaconRun::clear()
   speqSum=0;
   //
   aveSpe=0;
+  aveSpeErr=0;
 }
 

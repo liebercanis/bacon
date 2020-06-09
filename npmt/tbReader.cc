@@ -31,35 +31,44 @@
 #include "TRandom3.h"
 
 #include "TBaconEvent.hxx"
+#include "TBaconRun.hxx"
+
+/**
+** Double_t tMaxCut = 5e-6,tMinCut = 0.00e-6,vMaxEventCut = 10,vMinCut = 1e-3,peakWidthCut = 0,nHits = 10;//25e-9;
+**  startTime > 9e-7
+**        double peakTimeMean = 1.53e-6,peakTimeSigma = 100e-9;
+          if(peakTime > peakTimeMean - peakTimeSigma && peakTime < peakTimeMean + peakTimeSigma ) continue;
+          if(charge < meanSPE[j] - 2*sigmaSPE[j]) continue;
+*/
 
 class tbReader {
   public :
-    tbReader(Int_t runstart=20000, Int_t runstop=20009);
+    tbReader(Int_t runstart=3000, Int_t runstop=29999);
     virtual ~tbReader(){;}
     void newRun();
     Int_t currentRun;
     Long64_t treeNumber;
-    Long64_t goodTrigger;
-    Long64_t totTrigger;
     Long64_t nloop;
+    TChain *tree;
+    TBaconEvent *bEvent;
+    TBaconRun *bRun;
+    TTree  *treeRun;
+    TNtuple *ntTrig;
+
     TH1D *hLife;
     TH1D *hChargeSum;
-
     TH1D *hLifeRun;
+    TH1D *hLifeACutRun;
     TH1D *hChargeSumRun;
     TH1D *hChargeCutRun;
     TH1D *hLifeQCutRun;
     TH1D *hChargeQCutRun;
-    
-    TChain *tree;
-    TBaconEvent *bEvent;
-    TNtuple *ntRun;
-    TNtuple *ntTrig;
+
 };
 
 
 void tbReader::newRun() {
-  printf(" xxxxxxxxx at entry %lld end of run %i tot(good) %lld(%lld) triggers\n" , nloop, currentRun, totTrigger, goodTrigger) ;
+  printf(" xxxxxxxxx at entry %lld end of run %i tot(good) %lld(%lld) triggers\n" , nloop, currentRun, bRun->totTrigger, bRun->goodTrigger) ;
 
   if(hChargeCutRun) { 
     hChargeCutRun->Fit("landau");
@@ -69,23 +78,55 @@ void tbReader::newRun() {
     hChargeQCutRun->Fit("landau");
     TF1 *lfit3 = hChargeQCutRun->GetFunction("landau");
 
-    if(lfit&&lfit2&&lfit3) ntRun->Fill(float(currentRun),float(hChargeSumRun->GetEntries()),
-        lfit->GetParameter(1), lfit->GetParError(1),  lfit->GetParameter(2),lfit->GetParError(2),
-        lfit2->GetParameter(1),lfit2->GetParError(1),lfit2->GetParameter(2),lfit2->GetParError(2),
-        lfit3->GetParameter(1),lfit3->GetParError(1),lfit3->GetParameter(2),lfit3->GetParError(2));
+    //fill bRun branch
+    if(lfit2) {
+      bRun->mpvn=lfit2->GetParameter(1);
+      bRun->mpvnErr=lfit2->GetParError(1);
+      bRun->widn= lfit2->GetParameter(2);
+      bRun->widnErr=lfit2->GetParError(2);
+    }
+    bRun->nevn=hChargeSumRun->GetEntries();
+    bRun->spenSum=hLifeRun->Integral();
+    //
+    if(lfit) {
+      bRun->mpvc=lfit->GetParameter(1);
+      bRun->mpvcErr=lfit->GetParError(1);
+      bRun->widc= lfit->GetParameter(2);
+      bRun->widcErr=lfit->GetParError(2);
+    }
+    bRun->nevc=hChargeSumRun->GetEntries();  // ten hit cut
+    bRun->specSum=hLifeACutRun->Integral(); // afterpulse cut
+    //
+    if(lfit3) {
+      bRun->mpvq=lfit3->GetParameter(1);
+      bRun->mpvqErr=lfit3->GetParError(1);
+      bRun->widq= lfit->GetParameter(2);
+      bRun->widqErr=lfit3->GetParError(2);
+    }
+    bRun->nevq=hChargeQCutRun->GetEntries();
+    bRun->speqSum=hLifeQCutRun->Integral();
+    //
+    if(bRun->nevq>0) {
+      bRun->aveSpe= bRun->specSum/bRun->nevq;
+      // root n counting errors 
+      bRun->aveSpeErr=bRun->aveSpe*sqrt(  1./bRun->specSum + 1./bRun->nevq );
+    }
 
-    printf(" xxxxxxxxx ntRun size %lld events %E totSPE %E \n" , ntRun->GetEntries(),hChargeSumRun->GetEntries(),hLifeRun->Integral());
+    treeRun->Fill();
+    printf(" xxxxxxxxx treeRun ending run %d size %lld events %d totSPE %E " , bRun->run, treeRun->GetEntries(),bRun->nevc,bRun->specSum);
 
   }
 
-  totTrigger=0;
-  goodTrigger=0;
+  bRun->clear();
+  bRun->run = bEvent->run;
   currentRun = bEvent->run;
   hLifeRun = (TH1D*) hLife->Clone(Form("LifeRun%5i",int(currentRun)));
   hChargeSumRun = (TH1D*) hChargeSum->Clone(Form("ChargeSumRun%5i",int(currentRun)));
   hChargeCutRun = (TH1D*) hChargeSum->Clone(Form("ChargeCutRun%5i",int(currentRun)));
   hLifeQCutRun = (TH1D*) hLife->Clone(Form("LifeQCutRun%5i",int(currentRun)));
+  hLifeACutRun = (TH1D*) hLife->Clone(Form("LifeQACutRun%5i",int(currentRun)));
   hChargeQCutRun = (TH1D*) hChargeSum->Clone(Form("ChargeQCutRun%5i",int(currentRun)));
+  printf(" ... starting run %d \n", bRun->run);
 }
 
 
@@ -93,45 +134,55 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
 {
   currentRun=-1;
   treeNumber-1;
-  goodTrigger=0;
-  totTrigger=0;
   hLifeRun=NULL;
   hChargeSumRun=NULL;
   hChargeCutRun=NULL;
   hLifeQCutRun=NULL;
+  hLifeACutRun=NULL;
   hChargeQCutRun=NULL;
 
   double maxLife=10.0;
   int lifeBins = int(1.0E4/8.0); // ns bins
   double QSumCutValue = 200;
+  double startTimeMax= 9.0E-7;
+  double startRatioCut = 0.05;
+  
+
+
   //int lifeBins=400;
 
   //bool VmaxCut = false;
   
   // files must be in order by run
-  TString nfile[6];
-  nfile[0]=TString("TBAcon_10000_20000_DS_2.root");
-  nfile[1]=TString("TBAcon_20001_20100_DS_2.root");
-  nfile[2]=TString("TBAcon_20101_20222_DS_2.root");
-  nfile[3]=TString("TBAcon_30000_30452_DS_2.root");
-  nfile[4]=TString("TBAcon_30440_30443_DS_2.root");
-  nfile[5]=TString("TBAcon_30453_40000_DS_2.root");
+  TString nfile[7];
+  nfile[0]=TString("TBAcon_3000_5000_DS_2.root");
+  nfile[1]=TString("TBAcon_10000_20000_DS_2.root");
+  nfile[2]=TString("TBAcon_20001_20100_DS_2.root");
+  nfile[3]=TString("TBAcon_20101_20222_DS_2.root");
+  nfile[4]=TString("TBAcon_30000_30452_DS_2.root");
+  nfile[5]=TString("TBAcon_30440_30443_DS_2.root");
+  nfile[6]=TString("TBAcon_30453_40000_DS_2.root");
   tree = new TChain("TBacon");
   bEvent = new TBaconEvent();
   tree->SetBranchAddress("bevent",&bEvent);
   tree->GetListOfFiles()->ls();
-  for(int ifile=0; ifile<6; ++ifile) tree->Add(nfile[ifile]);
+  for(int ifile=0; ifile<7; ++ifile) tree->Add(nfile[ifile]);
   cout << " TBacon has " << tree->GetEntries() << endl;
 
   TFile *fout = new TFile(Form("tbReader-%i-%i-%i-bins.root",runstart,runstop,lifeBins),"RECREATE");
   cout << " output file is  " << fout->GetName() << endl;
   TDirectory *trigDir = fout->mkdir("trigDir");
   fout->cd();
-  ntRun = new TNtuple("ntRun","","run:nev:mpvc:mpvcErr:widc:widcErr:mpvn:mpvnErr:widn:widnErr:mpvq:mpvqErr:widq:widqErr");
+
+  treeRun = new TTree("tRun"," by Run data ");
+  bRun = new TBaconRun();
+  treeRun->Branch("brun",&bRun);
 
   TH2D *hNHitTotQ = new TH2D("NHitByTotQ"," nhit by tot Q ",50,0,50,50,0,50);
   TH1D *hNHits = new TH1D("NHits"," hits in event  ",350,0,350);
   TH1D *hTotQ  = new TH1D("TotQ"," totQ in event  after 10 cut ",350,0,350);
+  TH2D* hStartCut = new TH2D("StartCut"," pre trigger hit SPE ",110,0.,1.1,100,0.,100.);
+  TH1D* hStartSumCut = new TH1D("StartSumCut"," 700ns pre trigger sum SPE < 0.05 ",1000,0.,5.);
 
 
   // trigger
@@ -164,12 +215,15 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
   hLife->SetMarkerColor(kBlack);
   hLife->SetMarkerStyle(22);
   hLife->SetMarkerSize(.2);
+  hLife->Sumw2();
 
   hChargeSum = new TH1D("ChargeSum"," good summed event charge > 10 pulses  ",1000,0,10000);
   hChargeSum->GetXaxis()->SetTitle(" run sum dt-Q (x10^9) ");
+  hChargeSum->Sumw2();
 
    
   nloop = tree->GetEntries();
+
   for(Long64_t entry =0; entry< nloop ; ++ entry) {
     Long64_t itree = tree->LoadTree(entry);
     if(itree!=treeNumber) {
@@ -186,7 +240,7 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
 
     if(bEvent->npmt!=0) continue; // only use PMT zero
 
-    ++totTrigger;
+    ++bRun->totTrigger;
     if(entry%1000==0) printf(" ... %lld run %d  nhits %lu \n",entry,bEvent->run,bEvent->hits.size());
 
     hNHitTotQ->Fill(bEvent->totQ,bEvent->hits.size());
@@ -198,7 +252,7 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
     // early trigger data
     TH1D *hTrigQhitEvent =  NULL;
     TH1D *hTrigQsumEvent = NULL;
-    if(totTrigger<10) {
+    if(bRun->totTrigger<10) {
       trigDir->cd();
       hTrigQhitEvent =  (TH1D*) hTrigQhit->Clone(Form("TrigQRun%iEvent%i",int(bEvent->run),int(entry)));
       hTrigQsumEvent =  (TH1D*) hTrigQsum->Clone(Form("TrigQSumRun%iEvent%i",int(bEvent->run),int(entry)));
@@ -213,6 +267,7 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
     double trigSig=3;
     mapDer.clear();
     mapMax.clear();
+
     // hit loop to find trigger time 
     for(unsigned ip=0; ip< bEvent->hits.size(); ++ip) {
       double hitTime = bEvent->hits[ip].time*1E6;
@@ -239,9 +294,21 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
         //printf("\t xxxx event %i hit %i ibin %i time %f q %f sum %f  \n",entry, ip, ibin, hitTime, hitq, qtrigSum);
       }
     }
-    // hit loop to find QSum 
+
+   /* start time ratio cut. already made
+    for(unsigned ip=0; ip< bEvent->hits.size(); ++ip) {
+      if(bEvent->hits[ip].time>startTimeMax) break;
+      startCharge += bEvent->hits[ip].q;
+    }
+    hStartRatio->Fill(startCharge/bEvent->totalCharge);
+    if(startCharge/bEvent->totalCharge > startRatioCut) continue;
+    */
+
+
+    // hit loop to find QSum and pre trigger charge
     double QSumCut=0;
     double QSum=0;
+    double startCharge=0;
     for(unsigned ip=0; ip< bEvent->hits.size(); ++ip) {
       double hitTime = bEvent->hits[ip].time*1E6;
       double hitq = 1.0E9*bEvent->hits[ip].q/qspe;  // spe
@@ -249,7 +316,12 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
       bool peakCut = (bEvent->hits[ip].peak>0.795&&bEvent->hits[ip].peak<0.804)||(bEvent->hits[ip].peak>1.604&&bEvent->hits[ip].peak<1.611);
       QSum += hitq;
       if(!peakCut) QSumCut += hitq;
+      double relTime = hitTime - triggerTime+1;
+      if(relTime<1.1) hStartCut->Fill(relTime,hitq);
+      if(relTime<1.&&relTime>0.3) startCharge += hitq; 
     }
+    hStartSumCut->Fill(startCharge);
+    if(startCharge>0.05) continue;
 
     hChargeSumRun->Fill(QSum);
     hChargeCutRun->Fill(QSumCut);
@@ -269,7 +341,7 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
     // throw out events with bad trigger
     if(triggerTime<0.9||triggerTime>1.1) continue;
 
-    ++goodTrigger;
+    ++bRun->goodTrigger;
 
     // muonVmax cut 
     hMuVmax->Fill(bEvent->muVmax);
@@ -298,6 +370,7 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
       int hitBin =  hLifeRun->FindBin(hitTime); 
       double hitqerr2 = pow(hitqerr,2);
       if(isnan(hitqerr2)) printf (" XXXXXXX %f %f \n",hitq,hitqerr);
+      bool peakCut = (bEvent->hits[ip].peak>0.795&&bEvent->hits[ip].peak<0.804)||(bEvent->hits[ip].peak>1.604&&bEvent->hits[ip].peak<1.611);
       // cut bad hits
       //if(peakCut||afterCut) continue;
       hLifeRun->SetBinContent(hitBin, hLifeRun->GetBinContent(hitBin)+hitq);
@@ -310,9 +383,15 @@ tbReader::tbReader(Int_t runstart, Int_t runstop)
         hLifeQCutRun->SetBinContent(hitBin, hLifeQCutRun->GetBinContent(hitBin)+hitq);
         hLifeQCutRun->SetBinError(hitBin, sqrt( pow(hLifeQCutRun->GetBinError(hitBin),2)+pow(hitqerr,2) ));
       }
+      if(!peakCut) { // for counting without afterpulses
+        hLifeACutRun->SetBinContent(hitBin, hLifeACutRun->GetBinContent(hitBin)+hitq);
+        hLifeACutRun->SetBinError(hitBin, sqrt( pow(hLifeACutRun->GetBinError(hitBin),2)+pow(hitqerr,2) ));
+        hLifeACutRun->SetBinContent(hitBin, hLifeACutRun->GetBinContent(hitBin)+hitq);
+        hLifeACutRun->SetBinError(hitBin, sqrt( pow(hLifeACutRun->GetBinError(hitBin),2)+pow(hitqerr,2) ));
+      }
     }
 
-    ntEvent->Fill(float(entry),float(bEvent->run),float(goodTrigger),float(bEvent->hits.size()),float(bEvent->muVmax),float(QSumCut));
+    ntEvent->Fill(float(entry),float(bEvent->run),float(bRun->goodTrigger),float(bEvent->hits.size()),float(bEvent->muVmax),float(QSumCut));
   }
   // run landau fit for last run
 
