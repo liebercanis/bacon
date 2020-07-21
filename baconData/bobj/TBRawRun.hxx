@@ -20,9 +20,10 @@ class TBRawRun: public TNamed {
     //~TBRawRun();
 
     void clear();
+    enum {NDET=3};
     Int_t run;
     TTree *btree;
-    int timeUnit;
+    int timeUnit; //ns
     TBRawEvent det2;
     TBRawEvent det1;
     TBRawEvent det0;

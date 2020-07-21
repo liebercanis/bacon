@@ -33,8 +33,8 @@ void eventDisplay(Int_t  ievent=0)
   btree->GetEntry(ievent);
   int nsamples = (int) detList[0]->digi.size();
   cout << detList[0]->GetName() << " nsamples " << nsamples << endl;
-  if(!hevent[0]) for(unsigned id=0; id<NDET; ++id) hevent[id] = 
-    new TH1D(Form("Event%s",detList[0]->GetName()),Form("Event%s",detList[0]->GetName()), nsamples,0, nsamples);
+  if(!hevent[0]) for(unsigned id=0; id<NDET; ++id)  hevent[id] = 
+    new TH1D(Form("Event%s",detList[id]->GetName()),Form("Event%s",detList[id]->GetName()), nsamples,0, nsamples);
   
   // fill histograms
   for(unsigned id=0; id<NDET; ++id) for(unsigned i=0; i< nsamples ; ++i) hevent[id]->SetBinContent(i+1,detList[id]->digi[i]);

@@ -11,7 +11,7 @@ TBRawRun::TBRawRun(TString runName ): TNamed(runName,runName)
   detList.push_back(&det1);
   detList.push_back(&det2);
 
-  for(unsigned i=0; i<3; ++i ) {
+  for(unsigned i=0; i<NDET; ++i ) {
     btree->Branch(detList[i]->GetName(),detList[i]);
   }
   cout << " TBRawRun tree " << btree->GetName() << endl;
@@ -25,7 +25,7 @@ TBRawRun::TBRawRun(TString runName ): TNamed(runName,runName)
 void TBRawRun::clear()
 {
   run=0;
-  timeUnit=0;
+  timeUnit=2; // ns, default.
   detListClear();
 }
 

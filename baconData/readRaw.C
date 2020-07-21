@@ -76,6 +76,7 @@ void readRaw(TString runName = "run1")
 {
   TFile* fout = new TFile(Form("%s.root",runName.Data()),"recreate");
   brun = new TBRawRun("run1");
+  brun->timeUnit=2; // ns
   cout << " run name " << brun->GetName() << endl;
   openFiles();
   while( streams[0]->good()) { 
